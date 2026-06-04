@@ -3,325 +3,162 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, shrink-to-fit=no">
-  <title>Crystal Tap</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <title>Crystal Tap - Эволюция кликера</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      touch-action: manipulation;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      color: #fff;
-      padding: 10px;
-      background: var(--tg-theme-bg-color, #1a1a2e);
+      font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+      background:radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 100%);
+      min-height:100vh; display:flex; justify-content:center; align-items:center;
+      touch-action:manipulation; user-select:none;
+      -webkit-tap-highlight-color:transparent; color:#fff; padding:10px;
     }
-
     .game-container {
-      width: 100%;
-      max-width: 420px;
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(15px);
-      border-radius: 40px;
-      padding: 20px 20px 30px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
+      width:100%; max-width:440px;
+      background:rgba(255,255,255,0.05); backdrop-filter:blur(15px);
+      border-radius:40px; padding:20px 20px 30px;
+      box-shadow:0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1);
+      display:flex; flex-direction:column; align-items:center; gap:20px;
     }
-
     .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      padding: 0 10px;
+      display:flex; justify-content:space-between; align-items:center;
+      width:100%; padding:0 5px;
     }
-
     .score-box {
-      background: rgba(0, 0, 0, 0.4);
-      border-radius: 50px;
-      padding: 10px 22px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      background:rgba(0,0,0,0.4); border-radius:50px; padding:10px 22px;
+      backdrop-filter:blur(10px); box-shadow:0 4px 15px rgba(0,0,0,0.3);
+      display:flex; align-items:center; gap:8px;
     }
-
-    .score-icon {
-      font-size: 1.4rem;
-    }
-
+    .score-icon { font-size:1.4rem; }
     .score-text {
-      font-size: 1.8rem;
-      font-weight: bold;
-      background: linear-gradient(135deg, #f9d423, #ff4e50);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      font-size:1.8rem; font-weight:bold;
+      background:linear-gradient(135deg, #f9d423, #ff4e50);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text;
     }
-
-    .element-badge {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 30px;
-      padding: 8px 16px;
-      font-weight: bold;
-      font-size: 0.9rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      backdrop-filter: blur(5px);
-      transition: 0.3s;
+    .id-badge {
+      background:rgba(255,255,255,0.15); border-radius:30px;
+      padding:6px 14px; font-weight:bold; font-size:0.8rem;
+      backdrop-filter:blur(5px); color:#ddd;
+      letter-spacing:0.5px;
     }
-
     .crystal-area {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 20px 0;
+      position:relative; display:flex; justify-content:center; align-items:center;
+      margin:20px 0;
     }
-
     .crystal {
-      width: 160px;
-      height: 160px;
-      background: radial-gradient(circle at 30% 30%, #c77dff, #5a189a);
-      border-radius: 40% 60% 45% 55% / 50% 45% 55% 50%;
-      box-shadow: 0 0 60px #9d4edd, 0 0 120px rgba(157, 78, 221, 0.5);
-      cursor: pointer;
-      transition: transform 0.08s ease, box-shadow 0.2s;
+      width:160px; height:160px;
+      background:radial-gradient(circle at 30% 30%, #c77dff, #5a189a);
+      border-radius:40% 60% 45% 55% / 50% 45% 55% 50%;
+      box-shadow:0 0 60px #9d4edd, 0 0 120px rgba(157,78,221,0.5);
+      cursor:pointer;
+      transition:transform 0.08s ease, box-shadow 0.2s;
       animation: float 4s ease-in-out infinite, glowPulse 2.5s infinite alternate;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 3.5rem;
-      color: rgba(255, 255, 255, 0.9);
-      text-shadow: 0 0 20px white;
-      position: relative;
-      z-index: 2;
+      display:flex; justify-content:center; align-items:center;
+      font-size:3.5rem; color:rgba(255,255,255,0.9);
+      text-shadow:0 0 20px white; position:relative; z-index:2;
     }
-
-    .crystal:active {
-      transform: scale(0.9);
-      box-shadow: 0 0 100px #e0aaff, 0 0 180px rgba(224, 170, 255, 0.8);
-    }
-
+    .crystal:active { transform:scale(0.9); box-shadow:0 0 100px #e0aaff, 0 0 180px rgba(224,170,255,0.8); }
     @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
+      0%,100% { transform:translateY(0px); }
+      50% { transform:translateY(-10px); }
     }
-
     @keyframes glowPulse {
-      0% { box-shadow: 0 0 40px #9d4edd, 0 0 100px rgba(157, 78, 221, 0.4); }
-      100% { box-shadow: 0 0 80px #c77dff, 0 0 150px rgba(199, 125, 255, 0.7); }
+      0% { box-shadow:0 0 40px #9d4edd, 0 0 100px rgba(157,78,221,0.4); }
+      100% { box-shadow:0 0 80px #c77dff, 0 0 150px rgba(199,125,255,0.7); }
     }
-
     .particle {
-      position: absolute;
-      pointer-events: none;
-      font-weight: bold;
-      color: #ffd166;
-      font-size: 1.2rem;
-      text-shadow: 0 0 10px #ffaa00;
-      animation: rise 0.8s ease-out forwards;
-      z-index: 10;
+      position:absolute; pointer-events:none; font-weight:bold; color:#ffd166;
+      font-size:1.2rem; text-shadow:0 0 10px #ffaa00;
+      animation: rise 0.8s ease-out forwards; z-index:10;
     }
-
     @keyframes rise {
-      0% { opacity: 1; transform: translateY(0) scale(1); }
-      100% { opacity: 0; transform: translateY(-70px) scale(1.8); }
+      0% { opacity:1; transform:translateY(0) scale(1); }
+      100% { opacity:0; transform:translateY(-70px) scale(1.8); }
     }
-
-    .stats-row {
-      display: flex;
-      gap: 15px;
-      width: 100%;
-      justify-content: center;
-    }
-
+    .stats-row { display:flex; gap:15px; width:100%; justify-content:center; }
     .stat {
-      background: rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(8px);
-      border-radius: 20px;
-      padding: 10px 16px;
-      text-align: center;
-      flex: 1;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      background:rgba(0,0,0,0.35); backdrop-filter:blur(8px);
+      border-radius:20px; padding:10px 16px; text-align:center; flex:1;
+      box-shadow:0 4px 10px rgba(0,0,0,0.3);
     }
-
-    .stat-label {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #aaa;
+    .stat-label { font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; color:#aaa; }
+    .stat-value { font-size:1.3rem; font-weight:bold; color:#ffd166; }
+    .secret-tap-hint {
+      font-size:0.65rem; color:#888; text-align:center; margin-top:-10px;
+      cursor:default; user-select:none;
     }
-
-    .stat-value {
-      font-size: 1.3rem;
-      font-weight: bold;
-      color: #ffd166;
-    }
-
     .upgrades-panel {
-      width: 100%;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 30px;
-      padding: 15px;
-      backdrop-filter: blur(10px);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-height: 300px;
-      overflow-y: auto;
+      width:100%; background:rgba(0,0,0,0.3); border-radius:30px;
+      padding:15px; backdrop-filter:blur(10px); display:flex; flex-direction:column; gap:12px;
     }
-
     .upgrade-btn {
-      background: linear-gradient(135deg, #2d2d44, #1a1a2e);
-      border: none;
-      border-radius: 20px;
-      padding: 14px 18px;
-      color: white;
-      font-weight: bold;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      transition: 0.2s;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      border: 1px solid rgba(255,255,255,0.08);
-      font-size: 0.95rem;
+      background:linear-gradient(135deg, #2d2d44, #1a1a2e);
+      border:none; border-radius:20px; padding:14px 18px; color:white;
+      font-weight:bold; display:flex; justify-content:space-between; align-items:center;
+      cursor:pointer; transition:0.2s; box-shadow:0 4px 12px rgba(0,0,0,0.4);
+      border:1px solid rgba(255,255,255,0.08); font-size:0.95rem;
     }
-
-    .upgrade-btn:active {
-      transform: scale(0.96);
-      background: #3a3a5a;
-    }
-
-    .upgrade-btn.disabled {
-      opacity: 0.5;
-      pointer-events: none;
-      filter: grayscale(0.6);
-    }
-
-    .upgrade-info {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .upgrade-name {
-      font-size: 1rem;
-      font-weight: 600;
-    }
-
-    .upgrade-desc {
-      font-size: 0.7rem;
-      color: #b0b0d0;
-    }
-
-    .upgrade-cost {
-      background: #ffd166;
-      color: #1a1a2e;
-      padding: 6px 14px;
-      border-radius: 30px;
-      font-weight: bold;
-      font-size: 0.9rem;
-    }
-
-    .boost-section {
-      display: flex;
-      gap: 12px;
-      width: 100%;
-      margin-top: 5px;
-    }
-
+    .upgrade-btn:active { transform:scale(0.96); background:#3a3a5a; }
+    .upgrade-btn.disabled { opacity:0.5; pointer-events:none; filter:grayscale(0.6); }
+    .upgrade-info { display:flex; flex-direction:column; align-items:flex-start; }
+    .upgrade-name { font-size:1rem; font-weight:600; }
+    .upgrade-desc { font-size:0.7rem; color:#b0b0d0; }
+    .upgrade-cost { background:#ffd166; color:#1a1a2e; padding:6px 14px; border-radius:30px; font-weight:bold; }
+    .boost-section { display:flex; gap:12px; width:100%; margin-top:5px; }
     .boost-btn {
-      flex: 1;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 25px;
-      padding: 12px;
-      color: white;
-      font-weight: bold;
-      text-align: center;
-      cursor: pointer;
-      transition: 0.2s;
-      backdrop-filter: blur(5px);
+      flex:1; background:rgba(255,255,255,0.1);
+      border:1px solid rgba(255,255,255,0.2); border-radius:25px;
+      padding:12px; color:white; font-weight:bold; text-align:center;
+      cursor:pointer; transition:0.2s; backdrop-filter:blur(5px);
+      font-size:0.8rem;
     }
-
-    .boost-btn.active-boost {
-      background: #ff4e50;
-      border-color: #ff4e50;
-      box-shadow: 0 0 20px #ff4e50;
+    .boost-btn.active-boost { background:#ff4e50; border-color:#ff4e50; box-shadow:0 0 20px #ff4e50; }
+    .boost-btn.cooldown { opacity:0.5; pointer-events:none; }
+    .skin-selector, .friend-panel {
+      display:flex; gap:10px; width:100%; flex-wrap:wrap; justify-content:center;
+      background:rgba(0,0,0,0.3); border-radius:20px; padding:12px;
     }
-
-    .element-selector {
-      display: flex;
-      gap: 10px;
-      width: 100%;
-      margin-top: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
+    .skin-option, .friend-btn {
+      background:rgba(0,0,0,0.5); border-radius:25px; padding:10px 14px;
+      cursor:pointer; border:2px solid transparent; transition:0.2s;
+      font-weight:bold; font-size:0.9rem; backdrop-filter:blur(5px);
     }
-
-    .element-option {
-      background: rgba(0,0,0,0.5);
-      border-radius: 25px;
-      padding: 12px 16px;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: 0.2s;
-      font-weight: bold;
-      font-size: 0.9rem;
-      backdrop-filter: blur(5px);
+    .skin-option.selected { border-color:#f9d423; box-shadow:0 0 20px rgba(249,212,35,0.5); background:rgba(249,212,35,0.2); }
+    .friend-btn { border-color:rgba(255,255,255,0.3); }
+    .hidden { display:none !important; }
+    button { touch-action:manipulation; }
+    /* Окна интерфейса друзей */
+    .modal {
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.8); backdrop-filter:blur(10px);
+      display:flex; justify-content:center; align-items:center; z-index:100;
     }
-
-    .element-option.selected {
-      border-color: #f9d423;
-      box-shadow: 0 0 20px rgba(249, 212, 35, 0.5);
-      background: rgba(249, 212, 35, 0.2);
+    .modal-content {
+      background:#1a1a2e; border-radius:30px; padding:25px;
+      max-width:400px; width:90%; max-height:80vh; overflow-y:auto;
+      box-shadow:0 20px 40px rgba(0,0,0,0.8); color:white;
     }
-
-    .hidden {
-      display: none !important;
+    .modal-input {
+      width:100%; padding:12px; border-radius:25px; border:none;
+      background:rgba(255,255,255,0.15); color:white; margin:10px 0;
+      font-size:1rem;
     }
-
-    button {
-      touch-action: manipulation;
-    }
-
-    .player-info {
-      width: 100%;
-      text-align: center;
-      padding: 8px;
-      background: rgba(0,0,0,0.2);
-      border-radius: 15px;
-      font-size: 0.8rem;
-      color: #aaa;
+    .modal-btn {
+      background:linear-gradient(135deg, #f9d423, #ff4e50);
+      border:none; border-radius:25px; padding:12px 20px; color:black;
+      font-weight:bold; cursor:pointer; margin:5px;
     }
   </style>
 </head>
 <body>
 <div class="game-container">
-  <div class="player-info" id="playerInfo">Загрузка...</div>
-  
   <div class="header">
     <div class="score-box">
       <span class="score-icon">💎</span>
       <span class="score-text" id="scoreDisplay">0</span>
     </div>
-    <div class="element-badge" id="elementBadge">🌑 Без стихии</div>
+    <div class="id-badge" id="playerIdDisplay">ID: ...</div>
   </div>
 
   <div class="crystal-area" id="crystalArea">
@@ -329,7 +166,7 @@
   </div>
 
   <div class="stats-row">
-    <div class="stat">
+    <div class="stat" id="tapStat">
       <div class="stat-label">За тап</div>
       <div class="stat-value" id="tapPower">1</div>
     </div>
@@ -338,369 +175,626 @@
       <div class="stat-value" id="passivePower">0</div>
     </div>
   </div>
+  <div class="secret-tap-hint">✨ нажми 10 раз на "За тап", чтобы открыть секретный скин</div>
 
   <div class="boost-section">
-    <button class="boost-btn" id="boost2x">⚡ x2 (30с)</button>
-    <button class="boost-btn" id="boostAuto">🌀 Авто-тап (20с)</button>
+    <button class="boost-btn" id="boost2x">⚡ x2 (60с)</button>
+    <button class="boost-btn" id="boostAuto">🌀 Авто-тап (60с)</button>
   </div>
 
-  <div class="upgrades-panel" id="upgradesContainer">
+  <div class="skin-selector" id="skinSelector">
+    <div class="skin-option selected" data-skin="diamond">💎 Алмаз</div>
+    <div class="skin-option" data-skin="fire">🔥 Огонь</div>
+    <div class="skin-option" data-skin="ice">❄️ Лёд</div>
+    <div class="skin-option" data-skin="nature">🌿 Природа</div>
+    <!-- секретный скин добавится динамически -->
   </div>
 
-  <div class="element-selector hidden" id="elementSelector">
-    <div class="element-option" data-element="fire">🔥 Огонь</div>
-    <div class="element-option" data-element="ice">❄️ Лед</div>
-    <div class="element-option" data-element="nature">🌿 Природа</div>
+  <div class="upgrades-panel" id="upgradesContainer"></div>
+
+  <div class="friend-panel">
+    <button class="friend-btn" id="openFriendsBtn">👥 Друзья</button>
+    <button class="friend-btn" id="openAllPlayersBtn">🌐 Игроки</button>
   </div>
 </div>
 
-<script>
-  (function() {
-    // Инициализация Telegram Web App
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    tg.ready();
-    
-    // Показываем информацию об игроке
-    const playerInfo = document.getElementById('playerInfo');
-    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-      const user = tg.initDataUnsafe.user;
-      playerInfo.textContent = `🎮 ${user.first_name} ${user.last_name || ''}`;
-    } else {
-      playerInfo.textContent = '🎮 Игрок';
-    }
-    
-    // Адаптация под тему Telegram
-    document.body.style.backgroundColor = tg.backgroundColor || '#1a1a2e';
-    document.body.style.color = tg.textColor || '#fff';
-    
-    // Состояние игры
-    const state = {
-      energy: 0,
-      tapPower: 1,
-      passivePower: 0,
-      element: null,
-      upgrades: {
-        tap: { level: 0, baseCost: 15, costMult: 1.8, powerIncrease: 1 },
-        passive: { level: 0, baseCost: 50, costMult: 2.0, powerIncrease: 0.5 },
-        crit: { level: 0, baseCost: 200, costMult: 2.5, effect: 'crit' }
-      },
-      boosts: {
-        x2: false,
-        autoTap: false
-      },
-      autoTapInterval: null,
-      critChance: 0,
-      critMultiplier: 3
-    };
+<!-- Модальные окна -->
+<div id="friendsModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>👥 Друзья</h3>
+    <input type="text" class="modal-input" id="friendIdInput" placeholder="Введите ID друга">
+    <button class="modal-btn" id="addFriendBtn">Добавить</button>
+    <div id="friendsList" style="margin-top:15px;"></div>
+    <button class="modal-btn" id="closeFriendsBtn">Закрыть</button>
+  </div>
+</div>
 
-    // Сохранение в Telegram Cloud Storage
-    function saveProgress() {
-      if (tg.isVersionAtLeast('6.9')) {
-        tg.CloudStorage.setItem('crystalTapSave', JSON.stringify({
-          energy: state.energy,
-          tapPower: state.tapPower,
-          passivePower: state.passivePower,
-          element: state.element,
-          upgrades: state.upgrades,
-          critChance: state.critChance
-        }));
-      }
-    }
+<div id="chatModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>💬 Чат с <span id="chatFriendName"></span></h3>
+    <div id="chatMessages" style="max-height:250px; overflow-y:auto; margin:10px 0;"></div>
+    <input type="text" class="modal-input" id="chatInput" placeholder="Сообщение...">
+    <button class="modal-btn" id="sendChatBtn">Отправить</button>
+    <button class="modal-btn" id="closeChatBtn">Закрыть</button>
+  </div>
+</div>
 
-    // Загрузка из Telegram Cloud Storage
-    async function loadProgress() {
-      if (tg.isVersionAtLeast('6.9')) {
-        try {
-          const saved = await tg.CloudStorage.getItem('crystalTapSave');
-          if (saved) {
-            const data = JSON.parse(saved);
-            state.energy = data.energy || 0;
-            state.tapPower = data.tapPower || 1;
-            state.passivePower = data.passivePower || 0;
-            state.element = data.element || null;
-            state.upgrades = data.upgrades || state.upgrades;
-            state.critChance = data.critChance || 0;
-            
-            if (state.element) {
-              applyElementVisual(state.element);
-              document.getElementById('elementSelector').classList.remove('hidden');
-            }
-          }
-        } catch (e) {
-          console.log('Нет сохранения');
-        }
-      }
-    }
+<div id="allPlayersModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>🌐 Все игроки</h3>
+    <div id="allPlayersList"></div>
+    <button class="modal-btn" id="closeAllPlayersBtn">Закрыть</button>
+  </div>
+</div>
 
-    // Автосохранение
-    setInterval(saveProgress, 5000);
-    
-    // Сохранение при закрытии
-    tg.onEvent('viewportChanged', () => {
-      if (tg.isClosing) saveProgress();
+<!-- Firebase SDK -->
+<script type="module">
+  // ⚠️ ЗАМЕНИТЕ ЗНАЧЕНИЯ НА СВОЙ КОНФИГ ИЗ FIREBASE ⚠️
+  const firebaseConfig = {
+    apiKey: "ВАШ_API_KEY",
+    authDomain: "ВАШ_PROJECT.firebaseapp.com",
+    databaseURL: "https://ВАШ_PROJECT-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "ВАШ_PROJECT_ID",
+    storageBucket: "ВАШ_PROJECT.appspot.com",
+    messagingSenderId: "ВАШ_SENDER_ID",
+    appId: "ВАШ_APP_ID"
+  };
+
+  // Инициализация Firebase (используем CDN)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getDatabase, ref, set, onValue, push, update, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+
+  // --- ИГРОВОЕ СОСТОЯНИЕ ---
+  const state = {
+    energy: 0,
+    tapPower: 1,
+    passivePower: 0,
+    upgrades: {
+      tap: { level: 0, baseCost: 15, costMult: 1.8, powerIncrease: 1 },
+      passive: { level: 0, baseCost: 50, costMult: 2.0, powerIncrease: 0.5 },
+      crit: { level: 0, baseCost: 200, costMult: 2.5 }
+    },
+    boosts: { x2: false, autoTap: false },
+    autoTapInterval: null,
+    critChance: 0,
+    critMultiplier: 3,
+    currentSkin: 'diamond', // скин по умолчанию
+    secretUnlocked: false,
+    tapCountOnLabel: 0,
+    // Для кулдаунов бустов
+    lastX2Used: 0,
+    lastAutoTapUsed: 0,
+    userId: null,
+    friends: [],
+    incomingMessages: {}
+  };
+
+  // DOM элементы
+  const scoreDisplay = document.getElementById('scoreDisplay');
+  const tapPowerDisplay = document.getElementById('tapPower');
+  const passivePowerDisplay = document.getElementById('passivePower');
+  const crystal = document.getElementById('crystal');
+  const crystalArea = document.getElementById('crystalArea');
+  const upgradesContainer = document.getElementById('upgradesContainer');
+  const boost2xBtn = document.getElementById('boost2x');
+  const boostAutoBtn = document.getElementById('boostAuto');
+  const playerIdDisplay = document.getElementById('playerIdDisplay');
+  const skinOptions = document.querySelectorAll('.skin-option');
+  const secretHint = document.querySelector('.secret-tap-hint');
+  const tapStatDiv = document.getElementById('tapStat');
+
+  // Модальные окна
+  const friendsModal = document.getElementById('friendsModal');
+  const chatModal = document.getElementById('chatModal');
+  const allPlayersModal = document.getElementById('allPlayersModal');
+  const openFriendsBtn = document.getElementById('openFriendsBtn');
+  const openAllPlayersBtn = document.getElementById('openAllPlayersBtn');
+  const closeFriendsBtn = document.getElementById('closeFriendsBtn');
+  const closeChatBtn = document.getElementById('closeChatBtn');
+  const closeAllPlayersBtn = document.getElementById('closeAllPlayersBtn');
+
+  // --- FIREBASE АУТЕНТИФИКАЦИЯ ---
+  signInAnonymously(auth)
+    .then(() => console.log("Анонимный вход выполнен"))
+    .catch(error => console.error("Ошибка входа:", error));
+
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      state.userId = user.uid;
+      playerIdDisplay.textContent = `ID: ${user.uid.slice(0,8)}...`;
+      // Загружаем данные игрока
+      loadPlayerData(user.uid);
+      // Слушаем список друзей и сообщения
+      listenToFriends(user.uid);
+      listenToMessages(user.uid);
+    }
+  });
+
+  // --- СОХРАНЕНИЕ И ЗАГРУЗКА ---
+  function savePlayerData() {
+    if (!state.userId) return;
+    const playerRef = ref(db, 'players/' + state.userId);
+    set(playerRef, {
+      energy: state.energy,
+      tapPower: state.tapPower,
+      passivePower: state.passivePower,
+      upgrades: state.upgrades,
+      critChance: state.critChance,
+      currentSkin: state.currentSkin,
+      secretUnlocked: state.secretUnlocked,
+      lastX2Used: state.lastX2Used,
+      lastAutoTapUsed: state.lastAutoTapUsed
     });
+  }
 
-    const scoreDisplay = document.getElementById('scoreDisplay');
-    const tapPowerDisplay = document.getElementById('tapPower');
-    const passivePowerDisplay = document.getElementById('passivePower');
-    const crystal = document.getElementById('crystal');
-    const crystalArea = document.getElementById('crystalArea');
-    const elementBadge = document.getElementById('elementBadge');
-    const upgradesContainer = document.getElementById('upgradesContainer');
-    const boost2xBtn = document.getElementById('boost2x');
-    const boostAutoBtn = document.getElementById('boostAuto');
-    const elementOptions = document.querySelectorAll('.element-option');
-
-    function updateUI() {
-      scoreDisplay.textContent = Math.floor(state.energy);
-      
-      let currentTap = state.tapPower;
-      if (state.boosts.x2) currentTap *= 2;
-      if (state.element === 'fire') currentTap = Math.floor(currentTap * 1.4);
-      
-      let currentPassive = state.passivePower;
-      if (state.element === 'nature') currentPassive = Math.floor(currentPassive * 1.6);
-      
-      tapPowerDisplay.textContent = currentTap;
-      passivePowerDisplay.textContent = currentPassive.toFixed(1);
-      
-      renderUpgrades();
-      
-      if (state.element === 'fire') elementBadge.textContent = '🔥 Огонь';
-      else if (state.element === 'ice') elementBadge.textContent = '❄️ Лед';
-      else if (state.element === 'nature') elementBadge.textContent = '🌿 Природа';
-      else elementBadge.textContent = '🌑 Без стихии';
-      
-      if (state.boosts.x2) boost2xBtn.classList.add('active-boost');
-      else boost2xBtn.classList.remove('active-boost');
-      
-      if (state.boosts.autoTap) boostAutoBtn.classList.add('active-boost');
-      else boostAutoBtn.classList.remove('active-boost');
-      
-      elementOptions.forEach(opt => {
-        const el = opt.dataset.element;
-        if (state.element === el) opt.classList.add('selected');
-        else opt.classList.remove('selected');
-      });
-    }
-
-    function getUpgradeCost(upgradeKey) {
-      const upg = state.upgrades[upgradeKey];
-      return Math.floor(upg.baseCost * Math.pow(upg.costMult, upg.level));
-    }
-
-    function renderUpgrades() {
-      upgradesContainer.innerHTML = '';
-      
-      const upgradesData = [
-        { key: 'tap', name: 'Усиление тапа', desc: `+${state.upgrades.tap.powerIncrease} к силе`, icon: '👆' },
-        { key: 'passive', name: 'Пассивный сбор', desc: `+${state.upgrades.passive.powerIncrease}/сек`, icon: '⏳' },
-        { key: 'crit', name: 'Критический удар', desc: `Шанс крита +8%`, icon: '💥' }
-      ];
-      
-      upgradesData.forEach(item => {
-        const upg = state.upgrades[item.key];
-        const cost = getUpgradeCost(item.key);
-        const canBuy = state.energy >= cost;
-        
-        const btn = document.createElement('button');
-        btn.className = `upgrade-btn ${canBuy ? '' : 'disabled'}`;
-        btn.innerHTML = `
-          <div class="upgrade-info">
-            <span class="upgrade-name">${item.icon} ${item.name} (ур. ${upg.level})</span>
-            <span class="upgrade-desc">${item.desc}</span>
-          </div>
-          <span class="upgrade-cost">${cost} 💎</span>
-        `;
-        
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          buyUpgrade(item.key);
-        });
-        
-        upgradesContainer.appendChild(btn);
-      });
-    }
-
-    function buyUpgrade(key) {
-      const cost = getUpgradeCost(key);
-      if (state.energy < cost) return;
-      
-      state.energy -= cost;
-      const upg = state.upgrades[key];
-      upg.level++;
-      
-      if (key === 'tap') {
-        state.tapPower += upg.powerIncrease;
-      } else if (key === 'passive') {
-        state.passivePower += upg.powerIncrease;
-      } else if (key === 'crit') {
-        state.critChance = Math.min(state.critChance + 0.08, 0.6);
-      }
-      
-      checkElementUnlock();
-      updateUI();
-      saveProgress();
-      
-      if (tg.isVersionAtLeast('6.1')) {
-        tg.HapticFeedback.notificationOccurred('success');
-      }
-    }
-    
-    function checkElementUnlock() {
-      const totalLevels = state.upgrades.tap.level + state.upgrades.passive.level + state.upgrades.crit.level;
-      if (totalLevels >= 4 && !state.element) {
-        document.getElementById('elementSelector').classList.remove('hidden');
-      }
-    }
-
-    function handleTap(e) {
-      e.preventDefault();
-      let gained = state.tapPower;
-      
-      if (state.boosts.x2) gained *= 2;
-      if (state.element === 'fire') gained = Math.floor(gained * 1.4);
-      
-      if (Math.random() < state.critChance) {
-        gained *= state.critMultiplier;
-        createParticle(e, `💥 ${gained}`, '#ff4d6d');
+  function loadPlayerData(uid) {
+    const playerRef = ref(db, 'players/' + uid);
+    onValue(playerRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        state.energy = data.energy || 0;
+        state.tapPower = data.tapPower || 1;
+        state.passivePower = data.passivePower || 0;
+        state.upgrades = data.upgrades || state.upgrades;
+        state.critChance = data.critChance || 0;
+        state.currentSkin = data.currentSkin || 'diamond';
+        state.secretUnlocked = data.secretUnlocked || false;
+        state.lastX2Used = data.lastX2Used || 0;
+        state.lastAutoTapUsed = data.lastAutoTapUsed || 0;
+        applySkin(state.currentSkin);
+        updateUI();
+        // Обновляем отображение кулдаунов
+        updateBoostButtons();
       } else {
-        createParticle(e, `+${gained}`, '#ffd166');
+        // Новый игрок — сохраняем начальное состояние
+        savePlayerData();
       }
-      
-      state.energy += gained;
-      
-      if (state.element === 'ice' && Math.random() < 0.2) {
-        const bonus = Math.floor(gained * 0.7);
-        state.energy += bonus;
-        createParticle(e, `❄️+${bonus}`, '#a0d2ff');
+      // Также загружаем список друзей
+      if (state.userId) {
+        get(ref(db, 'players/' + state.userId + '/friends')).then(snap => {
+          state.friends = snap.val() || [];
+        });
       }
-      
-      updateUI();
-      
-      if (tg.isVersionAtLeast('6.1')) {
-        tg.HapticFeedback.impactOccurred('light');
-      }
+    }, { onlyOnce: false });
+  }
+
+  // --- ДРУЗЬЯ И СООБЩЕНИЯ ---
+  function listenToFriends(uid) {
+    const friendsRef = ref(db, 'players/' + uid + '/friends');
+    onValue(friendsRef, snapshot => {
+      state.friends = snapshot.val() || [];
+      renderFriendsList();
+    });
+  }
+
+  function listenToMessages(uid) {
+    const msgRef = ref(db, 'players/' + uid + '/messages');
+    onValue(msgRef, snapshot => {
+      state.incomingMessages = snapshot.val() || {};
+    });
+  }
+
+  // --- ОТРИСОВКА ИНТЕРФЕЙСА ДРУЗЕЙ ---
+  function renderFriendsList() {
+    const listDiv = document.getElementById('friendsList');
+    if (!listDiv) return;
+    if (state.friends.length === 0) {
+      listDiv.innerHTML = '<p style="color:#aaa">Нет друзей</p>';
+      return;
     }
+    let html = '';
+    state.friends.forEach(friendId => {
+      get(ref(db, 'players/' + friendId)).then(snap => {
+        const fdata = snap.val();
+        const name = fdata ? `Игрок ${friendId.slice(0,6)}` : 'Неизвестный';
+        const energy = fdata ? Math.floor(fdata.energy) : 0;
+        html += `<div style="margin:8px 0; background:#2d2d44; padding:10px; border-radius:15px; display:flex; justify-content:space-between;">
+          <span>👤 ${name} (💎${energy})</span>
+          <span>
+            <button class="modal-btn send-coins-btn" data-friend="${friendId}">💰 Отправить</button>
+            <button class="modal-btn chat-btn" data-friend="${friendId}">💬 Чат</button>
+          </span>
+        </div>`;
+        listDiv.innerHTML = html;
+        // Вешаем обработчики после вставки
+        document.querySelectorAll('.send-coins-btn').forEach(btn => {
+          btn.addEventListener('click', () => sendCoinsToFriend(btn.dataset.friend));
+        });
+        document.querySelectorAll('.chat-btn').forEach(btn => {
+          btn.addEventListener('click', () => openChatWithFriend(btn.dataset.friend));
+        });
+      });
+    });
+  }
 
-    function createParticle(e, text, color) {
-      const particle = document.createElement('div');
-      particle.className = 'particle';
-      particle.textContent = text;
-      particle.style.color = color;
-      
-      const rect = crystalArea.getBoundingClientRect();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      
-      particle.style.left = `${clientX - rect.left - 20}px`;
-      particle.style.top = `${clientY - rect.top - 20}px`;
-      crystalArea.appendChild(particle);
-      setTimeout(() => particle.remove(), 800);
+  function sendCoinsToFriend(friendId) {
+    const amount = prompt('Сколько монет отправить?');
+    if (!amount || isNaN(amount) || amount <= 0) return;
+    const num = parseInt(amount);
+    if (num > state.energy) {
+      alert('Недостаточно монет!');
+      return;
     }
+    // Списываем у себя
+    state.energy -= num;
+    // Отправляем другу (увеличиваем его баланс)
+    const friendRef = ref(db, 'players/' + friendId + '/energy');
+    get(friendRef).then(snap => {
+      const current = snap.val() || 0;
+      set(friendRef, current + num);
+    });
+    savePlayerData();
+    updateUI();
+  }
 
-    setInterval(() => {
-      if (state.passivePower > 0) {
-        let passiveGain = state.passivePower;
-        if (state.element === 'nature') passiveGain *= 1.6;
-        state.energy += passiveGain;
-        updateUI();
+  function openChatWithFriend(friendId) {
+    chatModal.classList.remove('hidden');
+    document.getElementById('chatFriendName').textContent = `Игрок ${friendId.slice(0,8)}`;
+    // Загружаем переписку
+    const chatRef = ref(db, 'chats/' + state.userId + '_' + friendId);
+    const messagesDiv = document.getElementById('chatMessages');
+    onValue(chatRef, snapshot => {
+      const msgs = snapshot.val() || {};
+      let html = '';
+      Object.values(msgs).forEach(msg => {
+        html += `<div style="margin:4px 0"><b>${msg.from.slice(0,6)}:</b> ${msg.text}</div>`;
+      });
+      messagesDiv.innerHTML = html;
+    });
+    // Отправка
+    document.getElementById('sendChatBtn').onclick = () => {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (text) {
+        push(chatRef, { from: state.userId, text: text, timestamp: Date.now() });
+        input.value = '';
       }
-    }, 1000);
+    };
+  }
 
-    function startAutoTap() {
-      if (state.autoTapInterval) clearInterval(state.autoTapInterval);
-      state.autoTapInterval = setInterval(() => {
-        let gained = state.tapPower;
-        if (state.boosts.x2) gained *= 2;
-        if (state.element === 'fire') gained = Math.floor(gained * 1.4);
-        if (Math.random() < state.critChance) gained *= state.critMultiplier;
-        if (state.element === 'ice' && Math.random() < 0.2) gained += Math.floor(gained * 0.7);
-        state.energy += gained;
-        updateUI();
-      }, 350);
-    }
-
-    function stopAutoTap() {
-      if (state.autoTapInterval) {
-        clearInterval(state.autoTapInterval);
-        state.autoTapInterval = null;
+  document.getElementById('addFriendBtn').addEventListener('click', () => {
+    const input = document.getElementById('friendIdInput');
+    const friendId = input.value.trim();
+    if (!friendId) return;
+    // Проверяем существование игрока
+    get(ref(db, 'players/' + friendId)).then(snap => {
+      if (!snap.exists()) {
+        alert('Игрок с таким ID не найден!');
+        return;
       }
-    }
-
-    function activateBoost(type) {
-      if (type === 'x2') {
-        state.boosts.x2 = true;
-        updateUI();
-        setTimeout(() => {
-          state.boosts.x2 = false;
-          updateUI();
-        }, 30000);
-      } else if (type === 'autoTap') {
-        state.boosts.autoTap = true;
-        startAutoTap();
-        updateUI();
-        setTimeout(() => {
-          state.boosts.autoTap = false;
-          stopAutoTap();
-          updateUI();
-        }, 20000);
+      if (state.friends.includes(friendId)) {
+        alert('Он уже в друзьях!');
+        return;
       }
-      
-      if (tg.isVersionAtLeast('6.1')) {
-        tg.HapticFeedback.notificationOccurred('warning');
-      }
-    }
+      state.friends.push(friendId);
+      set(ref(db, 'players/' + state.userId + '/friends'), state.friends);
+      input.value = '';
+    });
+  });
 
-    function applyElementVisual(element) {
-      if (element === 'fire') {
+  // --- СПИСОК ВСЕХ ИГРОКОВ ---
+  function loadAllPlayers() {
+    const playersRef = ref(db, 'players');
+    onValue(playersRef, snapshot => {
+      const data = snapshot.val();
+      const listDiv = document.getElementById('allPlayersList');
+      if (!data) {
+        listDiv.innerHTML = '<p style="color:#aaa">Нет игроков</p>';
+        return;
+      }
+      let html = '';
+      Object.entries(data).forEach(([id, pdata]) => {
+        const energy = Math.floor(pdata.energy || 0);
+        html += `<div style="margin:8px 0; background:#2d2d44; padding:10px; border-radius:15px; display:flex; justify-content:space-between;">
+          <span>👤 ID: ${id.slice(0,8)}... (💎${energy})</span>
+          <button class="modal-btn add-friend-list-btn" data-id="${id}">➕ Друг</button>
+        </div>`;
+      });
+      listDiv.innerHTML = html;
+      document.querySelectorAll('.add-friend-list-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          if (!state.friends.includes(id) && id !== state.userId) {
+            state.friends.push(id);
+            set(ref(db, 'players/' + state.userId + '/friends'), state.friends);
+          }
+        });
+      });
+    });
+  }
+
+  // --- МОДАЛЬНЫЕ ОКНА ---
+  openFriendsBtn.addEventListener('click', () => friendsModal.classList.remove('hidden'));
+  closeFriendsBtn.addEventListener('click', () => friendsModal.classList.add('hidden'));
+  openAllPlayersBtn.addEventListener('click', () => {
+    allPlayersModal.classList.remove('hidden');
+    loadAllPlayers();
+  });
+  closeAllPlayersBtn.addEventListener('click', () => allPlayersModal.classList.add('hidden'));
+  closeChatBtn.addEventListener('click', () => chatModal.classList.add('hidden'));
+
+  // --- СКИНЫ ---
+  function applySkin(skin) {
+    state.currentSkin = skin;
+    // Обновляем визуал кристалла
+    switch(skin) {
+      case 'diamond':
+        crystal.style.background = 'radial-gradient(circle at 30% 30%, #c77dff, #5a189a)';
+        crystal.style.boxShadow = '0 0 60px #9d4edd, 0 0 120px rgba(157,78,221,0.5)';
+        crystal.textContent = '💎';
+        break;
+      case 'fire':
         crystal.style.background = 'radial-gradient(circle at 30% 30%, #ff7b54, #b91c1c)';
         crystal.style.boxShadow = '0 0 70px #ff5400, 0 0 130px rgba(255,84,0,0.6)';
         crystal.textContent = '🔥';
-      } else if (element === 'ice') {
+        break;
+      case 'ice':
         crystal.style.background = 'radial-gradient(circle at 30% 30%, #a0d2ff, #1e3a8a)';
         crystal.style.boxShadow = '0 0 70px #3b82f6, 0 0 130px rgba(59,130,246,0.6)';
         crystal.textContent = '❄️';
-      } else if (element === 'nature') {
+        break;
+      case 'nature':
         crystal.style.background = 'radial-gradient(circle at 30% 30%, #86efac, #166534)';
         crystal.style.boxShadow = '0 0 70px #22c55e, 0 0 130px rgba(34,197,94,0.6)';
         crystal.textContent = '🌿';
-      }
+        break;
+      case 'secret_coin':
+        crystal.style.background = 'radial-gradient(circle at 30% 30%, #ffd700, #b8860b)';
+        crystal.style.boxShadow = '0 0 80px #ffd700, 0 0 140px rgba(255,215,0,0.8)';
+        crystal.textContent = '🪙';
+        break;
     }
+    // Подсветка выбранной кнопки скина
+    document.querySelectorAll('.skin-option').forEach(opt => {
+      if (opt.dataset.skin === skin) opt.classList.add('selected');
+      else opt.classList.remove('selected');
+    });
+  }
 
-    function selectElement(element) {
-      state.element = element;
-      applyElementVisual(element);
-      updateUI();
-      saveProgress();
-      
-      if (tg.isVersionAtLeast('6.1')) {
-        tg.HapticFeedback.notificationOccurred('success');
-      }
+  // Секретный скин — добавляем кнопку при разблокировке
+  function addSecretSkinButton() {
+    if (state.secretUnlocked) return;
+    state.secretUnlocked = true;
+    const container = document.getElementById('skinSelector');
+    const secretBtn = document.createElement('div');
+    secretBtn.className = 'skin-option';
+    secretBtn.dataset.skin = 'secret_coin';
+    secretBtn.textContent = '🪙 Элитная монета';
+    secretBtn.addEventListener('click', () => {
+      applySkin('secret_coin');
+      savePlayerData();
+    });
+    container.appendChild(secretBtn);
+    savePlayerData();
+  }
+
+  // Счетчик нажатий на "За тап"
+  tapStatDiv.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (state.secretUnlocked) return;
+    state.tapCountOnLabel++;
+    if (state.tapCountOnLabel >= 10) {
+      addSecretSkinButton();
+      secretHint.textContent = '🎉 Секретный скин открыт!';
+    } else {
+      secretHint.textContent = `✨ ещё ${10 - state.tapCountOnLabel} нажатий на "За тап"`;
     }
+  });
 
-    crystal.addEventListener('pointerdown', handleTap);
-    crystal.addEventListener('touchstart', handleTap, {passive: false});
-    
-    boost2xBtn.addEventListener('click', () => activateBoost('x2'));
-    boostAutoBtn.addEventListener('click', () => activateBoost('autoTap'));
-    
-    elementOptions.forEach(opt => {
-      opt.addEventListener('click', () => selectElement(opt.dataset.element));
+  // Обработчики выбора скина
+  skinOptions.forEach(opt => {
+    opt.addEventListener('click', () => {
+      applySkin(opt.dataset.skin);
+      savePlayerData();
     });
+  });
 
-    // Загружаем прогресс
-    loadProgress().then(() => {
+  // --- БУСТЫ С КУЛДАУНАМИ ---
+  function canUseBoost(type) {
+    const now = Date.now();
+    const cooldown = 10 * 60 * 1000; // 10 минут
+    if (type === 'x2') return (now - state.lastX2Used) >= cooldown;
+    if (type === 'autoTap') return (now - state.lastAutoTapUsed) >= cooldown;
+    return true;
+  }
+
+  function updateBoostButtons() {
+    const now = Date.now();
+    const cooldown = 10 * 60 * 1000;
+    // x2
+    if (state.boosts.x2) {
+      boost2xBtn.classList.add('active-boost');
+    } else {
+      boost2xBtn.classList.remove('active-boost');
+    }
+    if (!canUseBoost('x2')) {
+      boost2xBtn.classList.add('cooldown');
+      const remaining = Math.ceil((state.lastX2Used + cooldown - now) / 1000);
+      boost2xBtn.textContent = `⏳ x2 (${formatTime(remaining)})`;
+    } else {
+      boost2xBtn.classList.remove('cooldown');
+      boost2xBtn.textContent = '⚡ x2 (60с)';
+    }
+    // autoTap
+    if (state.boosts.autoTap) {
+      boostAutoBtn.classList.add('active-boost');
+    } else {
+      boostAutoBtn.classList.remove('active-boost');
+    }
+    if (!canUseBoost('autoTap')) {
+      boostAutoBtn.classList.add('cooldown');
+      const remaining = Math.ceil((state.lastAutoTapUsed + cooldown - now) / 1000);
+      boostAutoBtn.textContent = `⏳ Авто-тап (${formatTime(remaining)})`;
+    } else {
+      boostAutoBtn.classList.remove('cooldown');
+      boostAutoBtn.textContent = '🌀 Авто-тап (60с)';
+    }
+  }
+
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s < 10 ? '0' + s : s}`;
+  }
+
+  setInterval(updateBoostButtons, 1000); // обновляем каждую секунду таймеры
+
+  function activateBoost(type) {
+    if (!canUseBoost(type)) return;
+    const now = Date.now();
+    if (type === 'x2') {
+      state.boosts.x2 = true;
+      state.lastX2Used = now;
+      savePlayerData();
       updateUI();
-      checkElementUnlock();
+      setTimeout(() => {
+        state.boosts.x2 = false;
+        updateUI();
+        savePlayerData();
+      }, 60000);
+    } else if (type === 'autoTap') {
+      state.boosts.autoTap = true;
+      state.lastAutoTapUsed = now;
+      startAutoTap();
+      savePlayerData();
+      updateUI();
+      setTimeout(() => {
+        state.boosts.autoTap = false;
+        stopAutoTap();
+        updateUI();
+        savePlayerData();
+      }, 60000);
+    }
+  }
+
+  // --- ТАПЫ И МЕХАНИКИ (с сохранением) ---
+  function handleTap(e) {
+    e.preventDefault();
+    let gained = state.tapPower;
+    if (state.boosts.x2) gained *= 2;
+    // Крит
+    if (Math.random() < state.critChance) {
+      gained *= state.critMultiplier;
+      createParticle(e, `💥 ${gained}`, '#ff4d6d');
+    } else {
+      createParticle(e, `+${gained}`, '#ffd166');
+    }
+    state.energy += gained;
+    updateUI();
+    savePlayerData();
+  }
+
+  function createParticle(e, text, color) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.textContent = text;
+    particle.style.color = color;
+    particle.style.left = `${e.clientX - crystalArea.getBoundingClientRect().left - 20}px`;
+    particle.style.top = `${e.clientY - crystalArea.getBoundingClientRect().top - 20}px`;
+    crystalArea.appendChild(particle);
+    setTimeout(() => particle.remove(), 800);
+  }
+
+  // Пассивный доход
+  setInterval(() => {
+    if (state.passivePower > 0) {
+      state.energy += state.passivePower;
+      updateUI();
+      savePlayerData();
+    }
+  }, 1000);
+
+  // Авто-тап
+  function startAutoTap() {
+    if (state.autoTapInterval) clearInterval(state.autoTapInterval);
+    state.autoTapInterval = setInterval(() => {
+      let gained = state.tapPower;
+      if (state.boosts.x2) gained *= 2;
+      if (Math.random() < state.critChance) gained *= state.critMultiplier;
+      state.energy += gained;
+      updateUI();
+      savePlayerData();
+    }, 350);
+  }
+
+  function stopAutoTap() {
+    if (state.autoTapInterval) {
+      clearInterval(state.autoTapInterval);
+      state.autoTapInterval = null;
+    }
+  }
+
+  // Покупка улучшений
+  function getUpgradeCost(key) {
+    const upg = state.upgrades[key];
+    return Math.floor(upg.baseCost * Math.pow(upg.costMult, upg.level));
+  }
+
+  function buyUpgrade(key) {
+    const cost = getUpgradeCost(key);
+    if (state.energy < cost) return;
+    state.energy -= cost;
+    state.upgrades[key].level++;
+    if (key === 'tap') state.tapPower += state.upgrades.tap.powerIncrease;
+    else if (key === 'passive') state.passivePower += state.upgrades.passive.powerIncrease;
+    else if (key === 'crit') state.critChance = Math.min(state.critChance + 0.08, 0.6);
+    updateUI();
+    savePlayerData();
+  }
+
+  function renderUpgrades() {
+    upgradesContainer.innerHTML = '';
+    const upgradesData = [
+      { key: 'tap', name: 'Усиление тапа', desc: `+${state.upgrades.tap.powerIncrease} к силе`, icon: '👆' },
+      { key: 'passive', name: 'Пассивный сбор', desc: `+${state.upgrades.passive.powerIncrease}/сек`, icon: '⏳' },
+      { key: 'crit', name: 'Критический удар', desc: `Шанс крита +8%`, icon: '💥' }
+    ];
+    upgradesData.forEach(item => {
+      const cost = getUpgradeCost(item.key);
+      const canBuy = state.energy >= cost;
+      const btn = document.createElement('button');
+      btn.className = `upgrade-btn ${canBuy ? '' : 'disabled'}`;
+      btn.innerHTML = `
+        <div class="upgrade-info">
+          <span class="upgrade-name">${item.icon} ${item.name} (ур. ${state.upgrades[item.key].level})</span>
+          <span class="upgrade-desc">${item.desc}</span>
+        </div>
+        <span class="upgrade-cost">${cost} 💎</span>
+      `;
+      btn.addEventListener('click', (e) => { e.stopPropagation(); buyUpgrade(item.key); });
+      upgradesContainer.appendChild(btn);
     });
-    
-    window.addEventListener('beforeunload', () => {
-      stopAutoTap();
-      saveProgress();
-    });
-  })();
+  }
+
+  function updateUI() {
+    scoreDisplay.textContent = Math.floor(state.energy);
+    tapPowerDisplay.textContent = state.tapPower * (state.boosts.x2 ? 2 : 1);
+    passivePowerDisplay.textContent = state.passivePower.toFixed(1);
+    renderUpgrades();
+    if (state.boosts.x2) boost2xBtn.classList.add('active-boost');
+    else boost2xBtn.classList.remove('active-boost');
+    if (state.boosts.autoTap) boostAutoBtn.classList.add('active-boost');
+    else boostAutoBtn.classList.remove('active-boost');
+  }
+
+  // --- ИНИЦИАЛИЗАЦИЯ ---
+  crystal.addEventListener('pointerdown', handleTap);
+  boost2xBtn.addEventListener('click', () => activateBoost('x2'));
+  boostAutoBtn.addEventListener('click', () => activateBoost('autoTap'));
+
+  // Загружаем скин при наличии в сохранениях
+  window.addEventListener('beforeunload', () => {
+    stopAutoTap();
+    savePlayerData();
+  });
+
+  // Начальная загрузка UI
+  updateUI();
 </script>
 </body>
 </html>
