@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, shrink-to-fit=no">
   <title>Crystal Tap - Эволюция кликера</title>
   <style>
+    /* все стили без изменений, точно как в прошлом коде */
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
       font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
@@ -128,7 +129,6 @@
     .friend-btn { border-color:rgba(255,255,255,0.3); }
     .hidden { display:none !important; }
     button { touch-action:manipulation; }
-    /* Окна интерфейса друзей */
     .modal {
       position:fixed; top:0; left:0; width:100%; height:100%;
       background:rgba(0,0,0,0.8); backdrop-filter:blur(10px);
@@ -226,13 +226,13 @@
   </div>
 </div>
 
-<!-- Firebase SDK -->
-<script type="module">
-  // Твой личный конфиг Firebase (заменил)
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-  import { getDatabase, ref, set, onValue, push, update, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+<!-- Firebase compat SDK (классический, без модулей) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
+<script>
+  // Твой конфиг
   const firebaseConfig = {
     apiKey: "AIzaSyDFR3PN4FizMbTnOysavtDJ4sgZIKnPnCw",
     authDomain: "crystal-tap-game.firebaseapp.com",
@@ -240,13 +240,13 @@
     projectId: "crystal-tap-game",
     storageBucket: "crystal-tap-game.firebasestorage.app",
     messagingSenderId: "277611666026",
-    appId: "1:277611666026:web:d53466a7dcf79f6c388813",
-    measurementId: "G-GNSQ9YQXYG"   // можно оставить, если хочешь, но analytics мы не подключаем
+    appId: "1:277611666026:web:d53466a7dcf79f6c388813"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getDatabase(app);
+  // Инициализация Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
 
   // --- ИГРОВОЕ СОСТОЯНИЕ ---
   const state = {
@@ -268,8 +268,7 @@
     lastX2Used: 0,
     lastAutoTapUsed: 0,
     userId: null,
-    friends: [],
-    incomingMessages: {}
+    friends: []
   };
 
   // DOM элементы
@@ -286,35 +285,31 @@
   const secretHint = document.querySelector('.secret-tap-hint');
   const tapStatDiv = document.getElementById('tapStat');
 
+  // Модальные окна
   const friendsModal = document.getElementById('friendsModal');
   const chatModal = document.getElementById('chatModal');
   const allPlayersModal = document.getElementById('allPlayersModal');
-  const openFriendsBtn = document.getElementById('openFriendsBtn');
-  const openAllPlayersBtn = document.getElementById('openAllPlayersBtn');
-  const closeFriendsBtn = document.getElementById('closeFriendsBtn');
-  const closeChatBtn = document.getElementById('closeChatBtn');
-  const closeAllPlayersBtn = document.getElementById('closeAllPlayersBtn');
 
-  // --- FIREBASE АУТЕНТИФИКАЦИЯ ---
-  signInAnonymously(auth)
-    .then(() => console.log("Анонимный вход выполнен"))
+  // --- Аутентификация ---
+  auth.signInAnonymously()
     .catch(error => console.error("Ошибка входа:", error));
 
-  onAuthStateChanged(auth, user => {
+  auth.onAuthStateChanged(user => {
     if (user) {
       state.userId = user.uid;
       playerIdDisplay.textContent = `ID: ${user.uid.slice(0,8)}...`;
       loadPlayerData(user.uid);
       listenToFriends(user.uid);
-      listenToMessages(user.uid);
+    } else {
+      // выход
+      playerIdDisplay.textContent = 'ID: ...';
     }
   });
 
-  // --- СОХРАНЕНИЕ И ЗАГРУЗКА ---
+  // --- Сохранение и загрузка ---
   function savePlayerData() {
     if (!state.userId) return;
-    const playerRef = ref(db, 'players/' + state.userId);
-    set(playerRef, {
+    db.ref('players/' + state.userId).set({
       energy: state.energy,
       tapPower: state.tapPower,
       passivePower: state.passivePower,
@@ -328,8 +323,7 @@
   }
 
   function loadPlayerData(uid) {
-    const playerRef = ref(db, 'players/' + uid);
-    onValue(playerRef, (snapshot) => {
+    db.ref('players/' + uid).on('value', snapshot => {
       const data = snapshot.val();
       if (data) {
         state.energy = data.energy || 0;
@@ -347,30 +341,17 @@
       } else {
         savePlayerData();
       }
-      if (state.userId) {
-        get(ref(db, 'players/' + state.userId + '/friends')).then(snap => {
-          state.friends = snap.val() || [];
-        });
-      }
-    }, { onlyOnce: false });
+    });
   }
 
-  // --- ДРУЗЬЯ И СООБЩЕНИЯ ---
   function listenToFriends(uid) {
-    const friendsRef = ref(db, 'players/' + uid + '/friends');
-    onValue(friendsRef, snapshot => {
+    db.ref('players/' + uid + '/friends').on('value', snapshot => {
       state.friends = snapshot.val() || [];
       renderFriendsList();
     });
   }
 
-  function listenToMessages(uid) {
-    const msgRef = ref(db, 'players/' + uid + '/messages');
-    onValue(msgRef, snapshot => {
-      state.incomingMessages = snapshot.val() || {};
-    });
-  }
-
+  // --- Друзья ---
   function renderFriendsList() {
     const listDiv = document.getElementById('friendsList');
     if (!listDiv) return;
@@ -380,7 +361,7 @@
     }
     let html = '';
     state.friends.forEach(friendId => {
-      get(ref(db, 'players/' + friendId)).then(snap => {
+      db.ref('players/' + friendId).once('value').then(snap => {
         const fdata = snap.val();
         const name = fdata ? `Игрок ${friendId.slice(0,6)}` : 'Неизвестный';
         const energy = fdata ? Math.floor(fdata.energy) : 0;
@@ -406,15 +387,11 @@
     const amount = prompt('Сколько монет отправить?');
     if (!amount || isNaN(amount) || amount <= 0) return;
     const num = parseInt(amount);
-    if (num > state.energy) {
-      alert('Недостаточно монет!');
-      return;
-    }
+    if (num > state.energy) { alert('Недостаточно монет!'); return; }
     state.energy -= num;
-    const friendRef = ref(db, 'players/' + friendId + '/energy');
-    get(friendRef).then(snap => {
+    db.ref('players/' + friendId + '/energy').once('value').then(snap => {
       const current = snap.val() || 0;
-      set(friendRef, current + num);
+      db.ref('players/' + friendId + '/energy').set(current + num);
     });
     savePlayerData();
     updateUI();
@@ -423,31 +400,28 @@
   function openChatWithFriend(friendId) {
     chatModal.classList.remove('hidden');
     document.getElementById('chatFriendName').textContent = `Игрок ${friendId.slice(0,8)}`;
-    const chatRef = ref(db, 'chats/' + state.userId + '_' + friendId);
-    const messagesDiv = document.getElementById('chatMessages');
-    onValue(chatRef, snapshot => {
+    const chatRef = db.ref('chats/' + state.userId + '_' + friendId);
+    chatRef.on('value', snapshot => {
       const msgs = snapshot.val() || {};
       let html = '';
       Object.values(msgs).forEach(msg => {
         html += `<div style="margin:4px 0"><b>${msg.from.slice(0,6)}:</b> ${msg.text}</div>`;
       });
-      messagesDiv.innerHTML = html;
+      document.getElementById('chatMessages').innerHTML = html;
     });
     document.getElementById('sendChatBtn').onclick = () => {
-      const input = document.getElementById('chatInput');
-      const text = input.value.trim();
+      const text = document.getElementById('chatInput').value.trim();
       if (text) {
-        push(chatRef, { from: state.userId, text: text, timestamp: Date.now() });
-        input.value = '';
+        chatRef.push({ from: state.userId, text: text, timestamp: Date.now() });
+        document.getElementById('chatInput').value = '';
       }
     };
   }
 
   document.getElementById('addFriendBtn').addEventListener('click', () => {
-    const input = document.getElementById('friendIdInput');
-    const friendId = input.value.trim();
+    const friendId = document.getElementById('friendIdInput').value.trim();
     if (!friendId) return;
-    get(ref(db, 'players/' + friendId)).then(snap => {
+    db.ref('players/' + friendId).once('value').then(snap => {
       if (!snap.exists()) {
         alert('Игрок с таким ID не найден!');
         return;
@@ -457,14 +431,13 @@
         return;
       }
       state.friends.push(friendId);
-      set(ref(db, 'players/' + state.userId + '/friends'), state.friends);
-      input.value = '';
+      db.ref('players/' + state.userId + '/friends').set(state.friends);
+      document.getElementById('friendIdInput').value = '';
     });
   });
 
   function loadAllPlayers() {
-    const playersRef = ref(db, 'players');
-    onValue(playersRef, snapshot => {
+    db.ref('players').on('value', snapshot => {
       const data = snapshot.val();
       const listDiv = document.getElementById('allPlayersList');
       if (!data) {
@@ -485,23 +458,24 @@
           const id = btn.dataset.id;
           if (!state.friends.includes(id) && id !== state.userId) {
             state.friends.push(id);
-            set(ref(db, 'players/' + state.userId + '/friends'), state.friends);
+            db.ref('players/' + state.userId + '/friends').set(state.friends);
           }
         });
       });
     });
   }
 
-  openFriendsBtn.addEventListener('click', () => friendsModal.classList.remove('hidden'));
-  closeFriendsBtn.addEventListener('click', () => friendsModal.classList.add('hidden'));
-  openAllPlayersBtn.addEventListener('click', () => {
+  // Обработчики модальных окон
+  document.getElementById('openFriendsBtn').addEventListener('click', () => friendsModal.classList.remove('hidden'));
+  document.getElementById('closeFriendsBtn').addEventListener('click', () => friendsModal.classList.add('hidden'));
+  document.getElementById('openAllPlayersBtn').addEventListener('click', () => {
     allPlayersModal.classList.remove('hidden');
     loadAllPlayers();
   });
-  closeAllPlayersBtn.addEventListener('click', () => allPlayersModal.classList.add('hidden'));
-  closeChatBtn.addEventListener('click', () => chatModal.classList.add('hidden'));
+  document.getElementById('closeAllPlayersBtn').addEventListener('click', () => allPlayersModal.classList.add('hidden'));
+  document.getElementById('closeChatBtn').addEventListener('click', () => chatModal.classList.add('hidden'));
 
-  // --- СКИНЫ ---
+  // --- Скины ---
   function applySkin(skin) {
     state.currentSkin = skin;
     switch(skin) {
@@ -532,8 +506,7 @@
         break;
     }
     document.querySelectorAll('.skin-option').forEach(opt => {
-      if (opt.dataset.skin === skin) opt.classList.add('selected');
-      else opt.classList.remove('selected');
+      opt.classList.toggle('selected', opt.dataset.skin === skin);
     });
   }
 
@@ -572,7 +545,7 @@
     });
   });
 
-  // --- БУСТЫ С КУЛДАУНАМИ ---
+  // --- Бусты с кулдаунами ---
   function canUseBoost(type) {
     const now = Date.now();
     const cooldown = 10 * 60 * 1000;
@@ -584,11 +557,6 @@
   function updateBoostButtons() {
     const now = Date.now();
     const cooldown = 10 * 60 * 1000;
-    if (state.boosts.x2) {
-      boost2xBtn.classList.add('active-boost');
-    } else {
-      boost2xBtn.classList.remove('active-boost');
-    }
     if (!canUseBoost('x2')) {
       boost2xBtn.classList.add('cooldown');
       const remaining = Math.ceil((state.lastX2Used + cooldown - now) / 1000);
@@ -596,11 +564,6 @@
     } else {
       boost2xBtn.classList.remove('cooldown');
       boost2xBtn.textContent = '⚡ x2 (60с)';
-    }
-    if (state.boosts.autoTap) {
-      boostAutoBtn.classList.add('active-boost');
-    } else {
-      boostAutoBtn.classList.remove('active-boost');
     }
     if (!canUseBoost('autoTap')) {
       boostAutoBtn.classList.add('cooldown');
@@ -627,10 +590,10 @@
       state.boosts.x2 = true;
       state.lastX2Used = now;
       savePlayerData();
-      updateUI();
+      boost2xBtn.classList.add('active-boost');
       setTimeout(() => {
         state.boosts.x2 = false;
-        updateUI();
+        boost2xBtn.classList.remove('active-boost');
         savePlayerData();
       }, 60000);
     } else if (type === 'autoTap') {
@@ -638,16 +601,17 @@
       state.lastAutoTapUsed = now;
       startAutoTap();
       savePlayerData();
-      updateUI();
+      boostAutoBtn.classList.add('active-boost');
       setTimeout(() => {
         state.boosts.autoTap = false;
         stopAutoTap();
-        updateUI();
+        boostAutoBtn.classList.remove('active-boost');
         savePlayerData();
       }, 60000);
     }
   }
 
+  // --- Тапы и механики ---
   function handleTap(e) {
     e.preventDefault();
     let gained = state.tapPower;
@@ -674,6 +638,7 @@
     setTimeout(() => particle.remove(), 800);
   }
 
+  // Пассивный доход
   setInterval(() => {
     if (state.passivePower > 0) {
       state.energy += state.passivePower;
@@ -701,6 +666,7 @@
     }
   }
 
+  // Улучшения
   function getUpgradeCost(key) {
     const upg = state.upgrades[key];
     return Math.floor(upg.baseCost * Math.pow(upg.costMult, upg.level));
@@ -749,7 +715,7 @@
     renderUpgrades();
   }
 
-  // Инициализация
+  // Привязка событий
   crystal.addEventListener('pointerdown', handleTap);
   boost2xBtn.addEventListener('click', () => activateBoost('x2'));
   boostAutoBtn.addEventListener('click', () => activateBoost('autoTap'));
