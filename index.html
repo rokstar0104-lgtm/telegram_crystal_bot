@@ -527,15 +527,19 @@
   function declineFriendRequest(fromId) {
     db.ref('friendRequests/' + state.userId + '/' + fromId).remove();
   }
+
+  // Исправленная отправка монет
   function sendCoinsToFriend(fid) {
     const amt = prompt('Сколько отправить?');
     if (!amt || isNaN(amt) || amt <= 0) return;
     const n = parseInt(amt);
     if (n > state.energy) { showToast('Недостаточно монет'); return; }
     state.energy -= n;
+    // атомарно увеличиваем баланс друга
     db.ref('players/' + fid + '/energy').transaction(e => (e || 0) + n);
     savePlayerData();
     updateUI();
+    showToast(`Отправлено ${n} 💎`);
   }
 
   function openChatWithFriend(fid) {
@@ -579,7 +583,7 @@
 
   document.getElementById('closeChatBtn').addEventListener('click', () => chatModal.classList.add('hidden'));
 
-  // Вкладки модалок (используем меню)
+  // Вкладки модалок (меню)
   document.getElementById('menuFriends').addEventListener('click', () => {
     document.getElementById('menuModal').classList.add('hidden');
     friendsModal.classList.remove('hidden');
@@ -828,7 +832,7 @@
     } else state.secretCodeProgress = 0;
   }
 
-  // PvP
+  // PvP – исправленная логика и награды
   document.getElementById('menuBattle').addEventListener('click', () => {
     document.getElementById('menuModal').classList.add('hidden');
     pvpModal.classList.remove('hidden');
@@ -890,21 +894,31 @@
     }, 1000);
   }
 
-  function finishPvpGame() { if (state.pvp.gameId) db.ref('pvpGames/' + state.pvp.gameId + '/status').set('finished'); }
+  function finishPvpGame() {
+    if (state.pvp.gameId) db.ref('pvpGames/' + state.pvp.gameId + '/status').set('finished');
+  }
 
   function endPvPGame() {
     clearInterval(state.pvp.interval);
     stopFruitFall();
-    const myScore = state.pvp.myScore, oppScore = state.pvp.opponentScore;
-    let fireEarned = 0;
+
+    // Берем финальные счета из локального состояния
+    const myScore = state.pvp.myScore;
+    const oppScore = state.pvp.opponentScore;
+    let fireDelta = 0;
+
     if (myScore > oppScore) {
-      fireEarned = 10;
-      if (state.energy < state.pvp.opponentEnergy) fireEarned = 20;
-      else if (state.energy > state.pvp.opponentEnergy) fireEarned = 10;
-    } else if (myScore < oppScore) fireEarned = 2;
-    else fireEarned = 5;
-    state.fire += fireEarned;
-    showToast(`Битва окончена! Вы ${myScore>oppScore?'победили':(myScore<oppScore?'проиграли':'сыграли вничью')}. 🔥 +${fireEarned}`, '#f9d423');
+      fireDelta = 15; // победа
+    } else if (myScore < oppScore) {
+      fireDelta = -10; // поражение
+    } else {
+      fireDelta = 5; // ничья
+    }
+
+    // Не даём уйти в минус
+    state.fire = Math.max(0, state.fire + fireDelta);
+    const message = myScore > oppScore ? `Победа! +15🔥` : (myScore < oppScore ? `Поражение –10🔥` : `Ничья +5🔥`);
+    showToast(`Битва окончена! ${message}`, '#f9d423');
     savePlayerData(); updateUI();
     db.ref('pvpGames/' + state.pvp.gameId).remove();
     state.pvp.gameId = null; state.pvp.active = false;
