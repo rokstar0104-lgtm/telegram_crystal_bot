@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, shrink-to-fit=no">
-  <title>Crystal Tap - Эволюция кликера</title>
+  <title>Crystal Tap – Эволюция кликера</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
@@ -15,18 +15,14 @@
     }
     #loadingScreen {
       position:fixed; top:0; left:0; width:100%; height:100%;
-      background: #0f0f1a;
-      display:flex; flex-direction:column;
-      justify-content:center; align-items:center;
-      z-index:9999; transition: opacity 0.5s;
+      background:#0f0f1a; display:flex; flex-direction:column;
+      justify-content:center; align-items:center; z-index:9999;
+      transition: opacity 0.5s;
     }
     .loader {
-      width:60px; height:60px;
-      border:6px solid rgba(255,255,255,0.2);
-      border-top-color:#f9d423;
-      border-radius:50%;
-      animation: spin 1s linear infinite;
-      margin-bottom:20px;
+      width:60px; height:60px; border:6px solid rgba(255,255,255,0.2);
+      border-top-color:#f9d423; border-radius:50%;
+      animation: spin 1s linear infinite; margin-bottom:20px;
     }
     @keyframes spin { to { transform:rotate(360deg); } }
     .loading-text { color:#aaa; font-size:1.2rem; }
@@ -39,7 +35,7 @@
     }
     .header { display:flex; justify-content:space-between; align-items:center; width:100%; padding:0 5px; }
     .score-box {
-      background:rgba(0,0,0,0.4); border-radius:50px; padding:10px 22px;
+      background:rgba(0,0,0,0.4); border-radius:50px; padding:8px 18px;
       backdrop-filter:blur(10px); box-shadow:0 4px 15px rgba(0,0,0,0.3);
       display:flex; align-items:center; gap:8px;
     }
@@ -49,6 +45,11 @@
       background:linear-gradient(135deg, #f9d423, #ff4e50);
       -webkit-background-clip:text; -webkit-text-fill-color:transparent;
       background-clip:text;
+    }
+    .fire-badge {
+      background:rgba(255,100,0,0.3); border-radius:30px; padding:6px 14px;
+      font-weight:bold; font-size:0.9rem; backdrop-filter:blur(5px);
+      color:#ffaa00; display:none;
     }
     .id-badge {
       background:rgba(255,255,255,0.15); border-radius:30px;
@@ -61,54 +62,24 @@
       background:radial-gradient(circle at 30% 30%, #c77dff, #5a189a);
       border-radius:40% 60% 45% 55% / 50% 45% 55% 50%;
       box-shadow:0 0 60px #9d4edd, 0 0 120px rgba(157,78,221,0.5);
-      cursor:pointer;
-      transition:transform 0.08s ease, box-shadow 0.2s;
+      cursor:pointer; transition:transform 0.08s ease, box-shadow 0.2s;
       animation: float 4s ease-in-out infinite, glowPulse 2.5s infinite alternate;
       display:flex; justify-content:center; align-items:center;
       font-size:3.5rem; color:rgba(255,255,255,0.9);
       text-shadow:0 0 20px white; position:relative; z-index:2;
     }
     .crystal:active { transform:scale(0.9); box-shadow:0 0 100px #e0aaff, 0 0 180px rgba(224,170,255,0.8); }
-    @keyframes float {
-      0%,100% { transform:translateY(0px); }
-      50% { transform:translateY(-10px); }
-    }
-    @keyframes glowPulse {
-      0% { box-shadow:0 0 40px #9d4edd, 0 0 100px rgba(157,78,221,0.4); }
-      100% { box-shadow:0 0 80px #c77dff, 0 0 150px rgba(199,125,255,0.7); }
-    }
-    .particle {
-      position:absolute; pointer-events:none; font-weight:bold; color:#ffd166;
-      font-size:1.2rem; text-shadow:0 0 10px #ffaa00;
-      animation: rise 0.8s ease-out forwards; z-index:10;
-    }
-    @keyframes rise {
-      0% { opacity:1; transform:translateY(0) scale(1); }
-      100% { opacity:0; transform:translateY(-70px) scale(1.8); }
-    }
+    @keyframes float { 0%,100% { transform:translateY(0px); } 50% { transform:translateY(-10px); } }
+    @keyframes glowPulse { 0% { box-shadow:0 0 40px #9d4edd, 0 0 100px rgba(157,78,221,0.4); } 100% { box-shadow:0 0 80px #c77dff, 0 0 150px rgba(199,125,255,0.7); } }
+    .particle { position:absolute; pointer-events:none; font-weight:bold; color:#ffd166; font-size:1.2rem; text-shadow:0 0 10px #ffaa00; animation: rise 0.8s ease-out forwards; z-index:10; }
+    @keyframes rise { 0% { opacity:1; transform:translateY(0) scale(1); } 100% { opacity:0; transform:translateY(-70px) scale(1.8); } }
     .stats-row { display:flex; gap:15px; width:100%; justify-content:center; }
-    .stat {
-      background:rgba(0,0,0,0.35); backdrop-filter:blur(8px);
-      border-radius:20px; padding:10px 16px; text-align:center; flex:1;
-      box-shadow:0 4px 10px rgba(0,0,0,0.3);
-    }
+    .stat { background:rgba(0,0,0,0.35); backdrop-filter:blur(8px); border-radius:20px; padding:10px 16px; text-align:center; flex:1; box-shadow:0 4px 10px rgba(0,0,0,0.3); }
     .stat-label { font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; color:#aaa; }
     .stat-value { font-size:1.3rem; font-weight:bold; color:#ffd166; }
-    .secret-tap-hint {
-      font-size:0.65rem; color:#888; text-align:center; margin-top:-10px;
-      cursor:default; user-select:none;
-    }
-    .upgrades-panel {
-      width:100%; background:rgba(0,0,0,0.3); border-radius:30px;
-      padding:15px; backdrop-filter:blur(10px); display:flex; flex-direction:column; gap:12px;
-    }
-    .upgrade-btn {
-      background:linear-gradient(135deg, #2d2d44, #1a1a2e);
-      border:none; border-radius:20px; padding:14px 18px; color:white;
-      font-weight:bold; display:flex; justify-content:space-between; align-items:center;
-      cursor:pointer; transition:0.2s; box-shadow:0 4px 12px rgba(0,0,0,0.4);
-      border:1px solid rgba(255,255,255,0.08); font-size:0.95rem;
-    }
+    .secret-tap-hint { font-size:0.65rem; color:#888; text-align:center; margin-top:-10px; cursor:default; user-select:none; }
+    .upgrades-panel { width:100%; background:rgba(0,0,0,0.3); border-radius:30px; padding:15px; backdrop-filter:blur(10px); display:flex; flex-direction:column; gap:12px; }
+    .upgrade-btn { background:linear-gradient(135deg, #2d2d44, #1a1a2e); border:none; border-radius:20px; padding:14px 18px; color:white; font-weight:bold; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:0.2s; box-shadow:0 4px 12px rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.08); font-size:0.95rem; }
     .upgrade-btn:active { transform:scale(0.96); background:#3a3a5a; }
     .upgrade-btn.disabled { opacity:0.5; pointer-events:none; filter:grayscale(0.6); }
     .upgrade-info { display:flex; flex-direction:column; align-items:flex-start; }
@@ -116,51 +87,23 @@
     .upgrade-desc { font-size:0.7rem; color:#b0b0d0; }
     .upgrade-cost { background:#ffd166; color:#1a1a2e; padding:6px 14px; border-radius:30px; font-weight:bold; }
     .boost-section { display:flex; gap:12px; width:100%; margin-top:5px; }
-    .boost-btn {
-      flex:1; background:rgba(255,255,255,0.1);
-      border:1px solid rgba(255,255,255,0.2); border-radius:25px;
-      padding:12px; color:white; font-weight:bold; text-align:center;
-      cursor:pointer; transition:0.2s; backdrop-filter:blur(5px); font-size:0.8rem;
-    }
+    .boost-btn { flex:1; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:25px; padding:12px; color:white; font-weight:bold; text-align:center; cursor:pointer; transition:0.2s; backdrop-filter:blur(5px); font-size:0.8rem; }
     .boost-btn.active-boost { background:#ff4e50; border-color:#ff4e50; box-shadow:0 0 20px #ff4e50; }
     .boost-btn.cooldown { opacity:0.5; pointer-events:none; }
-    .skin-selector, .friend-panel {
-      display:flex; gap:10px; width:100%; flex-wrap:wrap; justify-content:center;
-      background:rgba(0,0,0,0.3); border-radius:20px; padding:12px;
-    }
-    .skin-option, .friend-btn {
-      background:rgba(0,0,0,0.5); border-radius:25px; padding:10px 14px;
-      cursor:pointer; border:2px solid transparent; transition:0.2s;
-      font-weight:bold; font-size:0.9rem; backdrop-filter:blur(5px);
-    }
+    .skin-selector { display:flex; gap:10px; width:100%; flex-wrap:wrap; justify-content:center; background:rgba(0,0,0,0.3); border-radius:20px; padding:12px; }
+    .skin-option { background:rgba(0,0,0,0.5); border-radius:25px; padding:10px 14px; cursor:pointer; border:2px solid transparent; transition:0.2s; font-weight:bold; font-size:0.9rem; backdrop-filter:blur(5px); }
     .skin-option.selected { border-color:#f9d423; box-shadow:0 0 20px rgba(249,212,35,0.5); background:rgba(249,212,35,0.2); }
-    .friend-btn { border-color:rgba(255,255,255,0.3); }
     .hidden { display:none !important; }
     button { touch-action:manipulation; }
-    .modal {
-      position:fixed; top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.8); backdrop-filter:blur(10px);
-      display:flex; justify-content:center; align-items:center; z-index:100;
-    }
-    .modal-content {
-      background:#1a1a2e; border-radius:30px; padding:25px;
-      max-width:400px; width:90%; max-height:80vh; overflow-y:auto;
-      box-shadow:0 20px 40px rgba(0,0,0,0.8); color:white;
-    }
-    .modal-input {
-      width:100%; padding:12px; border-radius:25px; border:none;
-      background:rgba(255,255,255,0.15); color:white; margin:10px 0; font-size:1rem;
-    }
-    .modal-btn {
-      background:linear-gradient(135deg, #f9d423, #ff4e50);
-      border:none; border-radius:25px; padding:12px 20px; color:black;
-      font-weight:bold; cursor:pointer; margin:5px;
-    }
+    .menu-btn { width:100%; background:linear-gradient(135deg, #f9d423, #ff4e50); border:none; border-radius:25px; padding:14px; color:black; font-weight:bold; font-size:1.2rem; cursor:pointer; margin-top:10px; }
+    .menu-grid { display:grid; grid-template-columns: repeat(2,1fr); gap:10px; margin-top:15px; }
+    .menu-item { background:rgba(0,0,0,0.5); border-radius:20px; padding:15px; text-align:center; cursor:pointer; border:2px solid transparent; font-weight:bold; backdrop-filter:blur(5px); }
+    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(10px); display:flex; justify-content:center; align-items:center; z-index:100; }
+    .modal-content { background:#1a1a2e; border-radius:30px; padding:25px; max-width:400px; width:90%; max-height:80vh; overflow-y:auto; box-shadow:0 20px 40px rgba(0,0,0,0.8); color:white; }
+    .modal-input { width:100%; padding:12px; border-radius:25px; border:none; background:rgba(255,255,255,0.15); color:white; margin:10px 0; font-size:1rem; }
+    .modal-btn { background:linear-gradient(135deg, #f9d423, #ff4e50); border:none; border-radius:25px; padding:12px 20px; color:black; font-weight:bold; cursor:pointer; margin:5px; }
     .tabs { display:flex; gap:5px; margin-bottom:10px; }
-    .tab-btn {
-      flex:1; padding:10px; background:#2d2d44; border:none;
-      color:white; border-radius:15px; font-weight:bold; cursor:pointer;
-    }
+    .tab-btn { flex:1; padding:10px; background:#2d2d44; border:none; color:white; border-radius:15px; font-weight:bold; cursor:pointer; }
     .tab-btn.active { background:#f9d423; color:black; }
     .league-badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:0.7rem; font-weight:bold; margin-left:5px; }
     .bronze { background:#cd7f32; color:white; }
@@ -171,30 +114,26 @@
     .ether { background:#00ffff; color:black; }
     .astral { background:#ff4500; color:white; }
     .cosmic { background:linear-gradient(135deg, #ff00ff, #00ffff); color:white; }
-
-    .pvp-container {
-      width:100%; height:300px; background:#0f0f1a; border-radius:20px;
-      position:relative; overflow:hidden; margin:15px 0;
-      border:2px solid #f9d423;
-    }
-    .basket {
-      position:absolute; bottom:10px; width:80px; height:40px;
-      background:linear-gradient(135deg, #8B4513, #A0522D);
-      border-radius:10px 10px 20px 20px;
-      box-shadow:0 0 15px rgba(255,215,0,0.5);
-      left:50%; transform:translateX(-50%);
-    }
+    .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#2d2d44; color:white; padding:12px 25px; border-radius:30px; font-weight:bold; z-index:200; opacity:0; transition: opacity 0.3s; box-shadow:0 5px 20px rgba(0,0,0,0.6); }
+    .toast.show { opacity:1; }
+    .pvp-container { width:100%; height:300px; background:#0f0f1a; border-radius:20px; position:relative; overflow:hidden; margin:15px 0; border:2px solid #f9d423; }
+    .basket { position:absolute; bottom:10px; width:80px; height:40px; background:linear-gradient(135deg, #8B4513, #A0522D); border-radius:10px 10px 20px 20px; box-shadow:0 0 15px rgba(255,215,0,0.5); left:50%; transform:translateX(-50%); }
     .fruit { position:absolute; font-size:2rem; top:-40px; }
     .score-board { display:flex; justify-content:space-around; margin:10px 0; font-size:1.2rem; font-weight:bold; }
     .pvp-timer { text-align:center; font-size:1.5rem; margin:10px 0; }
+    .chat-messages { height:200px; overflow-y:auto; background:rgba(0,0,0,0.3); border-radius:15px; padding:10px; margin:10px 0; }
+    .chat-msg { background:#2d2d44; padding:8px 12px; border-radius:15px; margin:5px 0; max-width:80%; }
+    .chat-msg.my { margin-left:auto; background:#f9d423; color:black; }
   </style>
 </head>
 <body>
 <div id="loadingScreen"><div class="loader"></div><div class="loading-text">Загрузка игры...</div></div>
+<div id="toast" class="toast"></div>
 
 <div class="game-container" style="visibility:hidden;">
   <div class="header">
     <div class="score-box"><span class="score-icon">💎</span><span class="score-text" id="scoreDisplay">0</span></div>
+    <div class="fire-badge" id="fireBadge">🔥 <span id="fireAmount">0</span></div>
     <div class="id-badge" id="playerIdDisplay">ID: ...</div>
   </div>
   <div class="crystal-area" id="crystalArea"><div class="crystal" id="crystal">💎</div></div>
@@ -214,17 +153,25 @@
     <div class="skin-option" data-skin="nature">🌿 Природа</div>
   </div>
   <div class="upgrades-panel" id="upgradesContainer"></div>
-  <div class="friend-panel">
-    <button class="friend-btn" id="openFriendsBtn">👥 Друзья</button>
-    <button class="friend-btn" id="openAllPlayersBtn">🌐 Игроки</button>
-    <button class="friend-btn" id="openLeaderboardBtn">🏆 Топ</button>
-    <button class="friend-btn" id="openLeaguesBtn">🏅 Лиги</button>
-    <button class="friend-btn hidden" id="openPvPBtn">⚔️ Битва</button>
-  </div>
-  <div style="text-align:center; color:#ffd166;" id="fireDisplay">🔥 0</div>
+  <button class="menu-btn" id="openMenuBtn">📋 Меню</button>
 </div>
 
-<!-- Модальные окна -->
+<!-- Модальное окно меню -->
+<div id="menuModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>📋 Меню</h3>
+    <div class="menu-grid">
+      <div class="menu-item" id="menuFriends">👥 Друзья</div>
+      <div class="menu-item" id="menuPlayers">🌐 Игроки</div>
+      <div class="menu-item" id="menuTop">🏆 Топ</div>
+      <div class="menu-item" id="menuLeagues">🏅 Лиги</div>
+      <div class="menu-item hidden" id="menuBattle">⚔️ Битва</div>
+    </div>
+    <button class="modal-btn" id="closeMenuBtn">Закрыть</button>
+  </div>
+</div>
+
+<!-- Остальные модальные окна -->
 <div id="friendsModal" class="modal hidden">
   <div class="modal-content">
     <h3>👥 Друзья</h3>
@@ -247,7 +194,7 @@
 <div id="chatModal" class="modal hidden">
   <div class="modal-content">
     <h3>💬 Чат с <span id="chatFriendName"></span></h3>
-    <div id="chatMessages" style="max-height:250px; overflow-y:auto; margin:10px 0;"></div>
+    <div class="chat-messages" id="chatMessages"></div>
     <input type="text" class="modal-input" id="chatInput" placeholder="Сообщение...">
     <button class="modal-btn" id="sendChatBtn">Отправить</button>
     <button class="modal-btn" id="closeChatBtn">Закрыть</button>
@@ -302,7 +249,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
 <script>
-  // Конфигурация Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyDFR3PN4FizMbTnOysavtDJ4sgZIKnPnCw",
     authDomain: "crystal-tap-game.firebaseapp.com",
@@ -316,43 +262,21 @@
   const auth = firebase.auth();
   const db = firebase.database();
 
-  // Игровое состояние
   const state = {
-    energy: 0,
-    tapPower: 1,
-    passivePower: 0,
+    energy: 0, tapPower: 1, passivePower: 0,
     upgrades: {
       tap: { level: 0, baseCost: 15, costMult: 1.8, powerIncrease: 1 },
       passive: { level: 0, baseCost: 50, costMult: 2.0, powerIncrease: 0.5 },
       crit: { level: 0, baseCost: 200, costMult: 2.5 }
     },
     boosts: { x2: false, autoTap: false },
-    autoTapInterval: null,
-    critChance: 0,
-    critMultiplier: 3,
-    currentSkin: 'diamond',
-    secretUnlocked: false,
-    tapCountOnLabel: 0,
-    lastX2Used: 0,
-    lastAutoTapUsed: 0,
-    userId: null,
-    friends: [],
-    dataLoaded: false,
-    secretCodeProgress: 0,
-    secretCodeUsed: false,
-    fire: 0,
-    leagueBonuses: {},
-    pvp: {
-      active: false,
-      searching: false,
-      opponent: null,
-      gameId: null,
-      myScore: 0,
-      opponentScore: 0,
-      timer: 60,
-      interval: null,
-      fruitInterval: null
-    }
+    autoTapInterval: null, critChance: 0, critMultiplier: 3,
+    currentSkin: 'diamond', secretUnlocked: false, tapCountOnLabel: 0,
+    lastX2Used: 0, lastAutoTapUsed: 0, userId: null, friends: [],
+    dataLoaded: false, secretCodeProgress: 0, secretCodeUsed: false,
+    fire: 0, leagueBonuses: {},
+    pvp: { active: false, searching: false, opponent: null, gameId: null,
+      myScore: 0, opponentScore: 0, timer: 60, interval: null, fruitInterval: null }
   };
 
   // DOM элементы
@@ -370,41 +294,58 @@
   const tapStatDiv = document.getElementById('tapStat');
   const passiveStatDiv = document.getElementById('passiveStatContainer');
   const loadingScreen = document.getElementById('loadingScreen');
-  const fireDisplay = document.getElementById('fireDisplay');
+  const fireBadge = document.getElementById('fireBadge');
+  const fireAmount = document.getElementById('fireAmount');
+  const menuBattle = document.getElementById('menuBattle');
   const openPvPBtn = document.getElementById('openPvPBtn');
-  const pvpModal = document.getElementById('pvpModal');
-  const cancelPvP = document.getElementById('cancelPvP');
-  const pvpSearching = document.getElementById('pvpSearching');
-  const pvpGameArea = document.getElementById('pvpGameArea');
-  const pvpField = document.getElementById('pvpField');
-  const basket = document.getElementById('basket');
-  const myFruitScore = document.getElementById('myFruitScore');
-  const opponentFruitScore = document.getElementById('opponentFruitScore');
-  const pvpTimerDisplay = document.getElementById('pvpTimer');
 
-  // Лиги
+  function showToast(text, color = '#f9d423') {
+    const toast = document.getElementById('toast');
+    toast.textContent = text;
+    toast.style.background = color;
+    toast.classList.add('show');
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
   const leagues = [
     { name: 'Бронза', class: 'bronze', minEnergy: 0, minFire: 0, bonus: 0 },
     { name: 'Серебро', class: 'silver', minEnergy: 1000, minFire: 0, bonus: 2 },
     { name: 'Золото', class: 'gold', minEnergy: 10000, minFire: 0, bonus: 3 },
     { name: 'Алмаз', class: 'diamond', minEnergy: 100000, minFire: 0, bonus: 5 },
-    { name: 'Мифрил', class: 'mythril', minEnergy: 500000, minFire: 10, bonus: 10 },
-    { name: 'Этерий', class: 'ether', minEnergy: 1000000, minFire: 25, bonus: 20 },
-    { name: 'Астрал', class: 'astral', minEnergy: 2500000, minFire: 50, bonus: 35 },
-    { name: 'Космос', class: 'cosmic', minEnergy: 5000000, minFire: 100, bonus: 50 }
+    { name: 'Мифрил', class: 'mythril', minEnergy: 500000, minFire: 50, bonus: 10 },
+    { name: 'Этерий', class: 'ether', minEnergy: 1500000, minFire: 150, bonus: 20 },
+    { name: 'Астрал', class: 'astral', minEnergy: 5000000, minFire: 400, bonus: 35 },
+    { name: 'Космос', class: 'cosmic', minEnergy: 15000000, minFire: 1000, bonus: 50 }
   ];
 
-  // --- Аутентификация и загрузка данных ---
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      state.userId = user.uid;
-      playerIdDisplay.textContent = `ID: ${user.uid.slice(0,8)}...`;
-      loadInitialData(user.uid);
-    } else {
-      playerIdDisplay.textContent = 'ID: ...';
-      auth.signInAnonymously().catch(console.error);
+  function getCurrentLeague() {
+    for (let i = leagues.length - 1; i >= 0; i--) {
+      if (state.energy >= leagues[i].minEnergy && state.fire >= leagues[i].minFire) return leagues[i];
     }
-  });
+    return leagues[0];
+  }
+
+  function updateFireDisplay() {
+    const league = getCurrentLeague();
+    if (state.fire > 0 || (league.name !== 'Бронза' && league.name !== 'Серебро' && league.name !== 'Золото')) {
+      fireBadge.style.display = 'inline-block';
+      fireAmount.textContent = state.fire;
+    } else {
+      fireBadge.style.display = 'none';
+    }
+  }
+
+  function checkLeagueUpgrade() {
+    const league = getCurrentLeague();
+    if (!state.leagueBonuses[league.name] && league.bonus > 0) {
+      state.tapPower += league.bonus;
+      state.leagueBonuses[league.name] = true;
+      showToast(`Вы достигли лиги ${league.name}! +${league.bonus} к тапу`, '#f9d423');
+      savePlayerData();
+    }
+    menuBattle.classList.toggle('hidden', league.name === 'Бронза' || league.name === 'Серебро' || league.name === 'Золото');
+  }
 
   function loadInitialData(uid) {
     db.ref('players/' + uid).once('value').then(snapshot => {
@@ -423,7 +364,7 @@
         state.secretCodeUsed = data.secretCodeUsed || false;
         state.fire = data.fire || 0;
         state.leagueBonuses = data.leagueBonuses || {};
-        if (data.friends) state.friends = Object.keys(data.friends);
+        state.friends = data.friends ? Object.keys(data.friends) : [];
       } else {
         savePlayerData();
       }
@@ -466,34 +407,17 @@
     });
   }
 
-  function updateFireDisplay() {
-    fireDisplay.textContent = `🔥 ${state.fire}`;
-  }
-
-  function getCurrentLeague() {
-    for (let i = leagues.length - 1; i >= 0; i--) {
-      const l = leagues[i];
-      if (state.energy >= l.minEnergy && state.fire >= l.minFire) return l;
-    }
-    return leagues[0];
-  }
-
-  function checkLeagueUpgrade() {
-    const league = getCurrentLeague();
-    if (!state.leagueBonuses[league.name] && league.bonus > 0) {
-      state.tapPower += league.bonus;
-      state.leagueBonuses[league.name] = true;
-      alert(`Поздравляем! Вы достигли лиги ${league.name}! Постоянный бонус к тапу: +${league.bonus}`);
-      savePlayerData();
-    }
-    if (league.name !== 'Бронза' && league.name !== 'Серебро' && league.name !== 'Золото') {
-      openPvPBtn.classList.remove('hidden');
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      state.userId = user.uid;
+      playerIdDisplay.textContent = `ID: ${user.uid.slice(0,8)}...`;
+      loadInitialData(user.uid);
     } else {
-      openPvPBtn.classList.add('hidden');
+      playerIdDisplay.textContent = 'ID: ...';
+      auth.signInAnonymously().catch(console.error);
     }
-  }
+  });
 
-  // --- Друзья (исправленная система) ---
   function listenToFriends(uid) {
     db.ref('players/' + uid + '/friends').on('value', snapshot => {
       const data = snapshot.val();
@@ -504,35 +428,26 @@
 
   function listenToFriendRequests(uid) {
     db.ref('friendRequests/' + uid).on('value', snapshot => {
-      if (!friendsModal.classList.contains('hidden')) {
-        renderRequestsList(snapshot.val() || {});
-      }
+      if (!friendsModal.classList.contains('hidden')) renderRequestsList(snapshot.val() || {});
     });
   }
 
   async function renderFriendsList() {
     const listDiv = document.getElementById('friendsList');
     if (!listDiv) return;
-    if (!state.friends.length) {
-      listDiv.innerHTML = '<p style="color:#aaa">Нет друзей</p>';
-      return;
-    }
-    const promises = state.friends.map(fid =>
-      db.ref('players/' + fid).once('value').then(s => ({ id: fid, data: s.val() }))
-    );
+    if (!state.friends.length) { listDiv.innerHTML = '<p style="color:#aaa">Нет друзей</p>'; return; }
+    const promises = state.friends.map(fid => db.ref('players/' + fid).once('value').then(s => ({ id: fid, data: s.val() })));
     const friendsData = await Promise.all(promises);
     let html = '';
     friendsData.forEach(({ id, data }) => {
       const name = data ? `Игрок ${id.slice(0,6)}` : 'Неизвестный';
       const energy = data ? Math.floor(data.energy) : 0;
-      html += `
-        <div style="margin:8px 0; background:#2d2d44; padding:10px; border-radius:15px; display:flex; justify-content:space-between; align-items:center;">
-          <span>👤 ${name} (💎${energy})</span>
-          <span>
-            <button class="modal-btn send-coins-btn" data-friend="${id}">💰</button>
-            <button class="modal-btn chat-btn" data-friend="${id}">💬</button>
-          </span>
-        </div>`;
+      html += `<div style="margin:8px 0; background:#2d2d44; padding:10px; border-radius:15px; display:flex; justify-content:space-between; align-items:center;">
+        <span>👤 ${name} (💎${energy})</span>
+        <span>
+          <button class="modal-btn send-coins-btn" data-friend="${id}">💰</button>
+          <button class="modal-btn chat-btn" data-friend="${id}">💬</button>
+        </span></div>`;
     });
     listDiv.innerHTML = html;
     document.querySelectorAll('.send-coins-btn').forEach(b => b.addEventListener('click', () => sendCoinsToFriend(b.dataset.friend)));
@@ -543,20 +458,15 @@
     const listDiv = document.getElementById('requestsList');
     if (!listDiv) return;
     const entries = Object.entries(requests);
-    if (entries.length === 0) {
-      listDiv.innerHTML = '<p style="color:#aaa">Нет входящих заявок</p>';
-      return;
-    }
+    if (!entries.length) { listDiv.innerHTML = '<p style="color:#aaa">Нет входящих заявок</p>'; return; }
     let html = '';
     entries.forEach(([fromId]) => {
-      html += `
-        <div style="margin:8px 0; background:#2d2d44; padding:10px; border-radius:15px; display:flex; justify-content:space-between;">
-          <span>👤 Игрок ${fromId.slice(0,8)}...</span>
-          <span>
-            <button class="modal-btn accept-request-btn" data-from="${fromId}">✅</button>
-            <button class="modal-btn decline-request-btn" data-from="${fromId}">❌</button>
-          </span>
-        </div>`;
+      html += `<div style="margin:8px 0; background:#2d2d44; padding:10px; border-radius:15px; display:flex; justify-content:space-between;">
+        <span>👤 Игрок ${fromId.slice(0,8)}...</span>
+        <span>
+          <button class="modal-btn accept-request-btn" data-from="${fromId}">✅</button>
+          <button class="modal-btn decline-request-btn" data-from="${fromId}">❌</button>
+        </span></div>`;
     });
     listDiv.innerHTML = html;
     document.querySelectorAll('.accept-request-btn').forEach(b => b.addEventListener('click', () => acceptFriendRequest(b.dataset.from)));
@@ -566,12 +476,12 @@
   document.getElementById('addFriendBtn').addEventListener('click', () => {
     const input = document.getElementById('friendIdInput');
     const fid = input.value.trim();
-    if (!fid || fid === state.userId) { alert('Введите ID игрока.'); return; }
+    if (!fid || fid === state.userId) { showToast('Введите корректный ID', '#ff4e50'); return; }
     db.ref('players/' + fid).once('value').then(s => {
-      if (!s.exists()) { alert('Игрок не найден'); return; }
-      if (state.friends.includes(fid)) { alert('Уже в друзьях'); return; }
+      if (!s.exists()) { showToast('Игрок не найден', '#ff4e50'); return; }
+      if (state.friends.includes(fid)) { showToast('Уже в друзьях', '#ff4e50'); return; }
       db.ref('friendRequests/' + fid + '/' + state.userId).set(true);
-      alert('Запрос отправлен');
+      showToast('Запрос отправлен', '#f9d423');
       input.value = '';
     });
   });
@@ -582,6 +492,7 @@
     updates['players/' + fromId + '/friends/' + state.userId] = true;
     updates['friendRequests/' + state.userId + '/' + fromId] = null;
     db.ref().update(updates);
+    showToast('Запрос принят', '#f9d423');
   }
 
   function declineFriendRequest(fromId) {
@@ -592,34 +503,36 @@
     const amt = prompt('Сколько отправить?');
     if (!amt || isNaN(amt) || amt <= 0) return;
     const n = parseInt(amt);
-    if (n > state.energy) { alert('Недостаточно монет'); return; }
+    if (n > state.energy) { showToast('Недостаточно монет', '#ff4e50'); return; }
     state.energy -= n;
     db.ref('players/' + fid + '/energy').transaction(e => (e || 0) + n);
     savePlayerData();
     updateUI();
+    showToast(`Отправлено ${n} 💎`, '#f9d423');
   }
 
   function openChatWithFriend(fid) {
     chatModal.classList.remove('hidden');
     document.getElementById('chatFriendName').textContent = `Игрок ${fid.slice(0,8)}`;
-    const chatRef = db.ref('chats/' + state.userId + '_' + fid);
+    const chatId = [state.userId, fid].sort().join('_');
+    const chatRef = db.ref('chats/' + chatId);
     chatRef.off();
     chatRef.on('value', snap => {
       const msgs = snap.val() || {};
       let html = '';
-      Object.values(msgs).forEach(m => html += `<div><b>${m.from.slice(0,6)}:</b> ${m.text}</div>`);
+      Object.values(msgs).forEach(m => {
+        const cls = m.from === state.userId ? 'my' : '';
+        html += `<div class="chat-msg ${cls}"><b>${m.from.slice(0,6)}:</b> ${m.text}</div>`;
+      });
       document.getElementById('chatMessages').innerHTML = html;
+      document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
     });
     document.getElementById('sendChatBtn').onclick = () => {
       const t = document.getElementById('chatInput').value.trim();
-      if (t) {
-        chatRef.push({ from: state.userId, text: t, timestamp: Date.now() });
-        document.getElementById('chatInput').value = '';
-      }
+      if (t) { chatRef.push({ from: state.userId, text: t, timestamp: Date.now() }); document.getElementById('chatInput').value = ''; }
     };
   }
 
-  // Вкладки друзей
   document.getElementById('friendsTabBtn').addEventListener('click', () => {
     document.getElementById('friendsTabContent').classList.remove('hidden');
     document.getElementById('requestsTabContent').classList.add('hidden');
@@ -634,15 +547,41 @@
     db.ref('friendRequests/' + state.userId).once('value').then(s => renderRequestsList(s.val() || {}));
   });
 
-  // Окна интерфейса
-  document.getElementById('openFriendsBtn').addEventListener('click', () => {
-    friendsModal.classList.remove('hidden');
+  // Меню
+  document.getElementById('openMenuBtn').addEventListener('click', () => document.getElementById('menuModal').classList.remove('hidden'));
+  document.getElementById('closeMenuBtn').addEventListener('click', () => document.getElementById('menuModal').classList.add('hidden'));
+  document.getElementById('menuFriends').addEventListener('click', () => {
+    document.getElementById('menuModal').classList.add('hidden');
+    document.getElementById('friendsModal').classList.remove('hidden');
     document.getElementById('friendsTabBtn').click();
   });
-  document.getElementById('closeFriendsBtn').addEventListener('click', () => friendsModal.classList.add('hidden'));
+  document.getElementById('menuPlayers').addEventListener('click', () => {
+    document.getElementById('menuModal').classList.add('hidden');
+    document.getElementById('allPlayersModal').classList.remove('hidden');
+    loadAllPlayers();
+  });
+  document.getElementById('menuTop').addEventListener('click', () => {
+    document.getElementById('menuModal').classList.add('hidden');
+    document.getElementById('leaderboardModal').classList.remove('hidden');
+    loadLeaderboard();
+  });
+  document.getElementById('menuLeagues').addEventListener('click', () => {
+    document.getElementById('menuModal').classList.add('hidden');
+    document.getElementById('leaguesModal').classList.remove('hidden');
+    updateLeagueDisplay();
+  });
+  document.getElementById('menuBattle').addEventListener('click', () => {
+    document.getElementById('menuModal').classList.add('hidden');
+    openPvPBtn.click();
+  });
 
-  document.getElementById('openAllPlayersBtn').addEventListener('click', () => {
-    allPlayersModal.classList.remove('hidden');
+  document.getElementById('closeFriendsBtn').addEventListener('click', () => friendsModal.classList.add('hidden'));
+  document.getElementById('closeChatBtn').addEventListener('click', () => chatModal.classList.add('hidden'));
+  document.getElementById('closeAllPlayersBtn').addEventListener('click', () => allPlayersModal.classList.add('hidden'));
+  document.getElementById('closeLeaderboardBtn').addEventListener('click', () => leaderboardModal.classList.add('hidden'));
+  document.getElementById('closeLeaguesBtn').addEventListener('click', () => leaguesModal.classList.add('hidden'));
+
+  function loadAllPlayers() {
     db.ref('players').once('value').then(s => {
       const data = s.val();
       const listDiv = document.getElementById('allPlayersList');
@@ -659,15 +598,13 @@
         const id = b.dataset.id;
         if (id !== state.userId && !state.friends.includes(id)) {
           db.ref('friendRequests/' + id + '/' + state.userId).set(true);
-          alert('Запрос отправлен');
+          showToast('Запрос отправлен', '#f9d423');
         }
       }));
     });
-  });
-  document.getElementById('closeAllPlayersBtn').addEventListener('click', () => allPlayersModal.classList.add('hidden'));
+  }
 
-  document.getElementById('openLeaderboardBtn').addEventListener('click', () => {
-    leaderboardModal.classList.remove('hidden');
+  function loadLeaderboard() {
     db.ref('players').orderByChild('energy').limitToLast(10).once('value').then(s => {
       const data = s.val();
       const listDiv = document.getElementById('leaderboardList');
@@ -676,36 +613,28 @@
       players.sort((a,b) => (b.energy||0) - (a.energy||0));
       let html = '';
       players.slice(0,10).forEach((p,i) => {
-        const league = getCurrentLeagueForDisplay(p.energy||0, p.fire||0);
+        const league = getLeagueForDisplay(p.energy||0, p.fire||0);
         html += `<div style="margin:8px 0; background:#2d2d44; padding:10px; border-radius:15px; display:flex; justify-content:space-between;">
           <span>${i+1}. 👤 ${p.id.slice(0,6)}... <span class="league-badge ${league.class}">${league.name}</span></span>
           <span>💎 ${Math.floor(p.energy||0)}</span></div>`;
       });
       listDiv.innerHTML = html;
     });
-  });
-  document.getElementById('closeLeaderboardBtn').addEventListener('click', () => leaderboardModal.classList.add('hidden'));
+  }
 
-  function getCurrentLeagueForDisplay(energy, fire) {
+  function getLeagueForDisplay(energy, fire) {
     for (let i = leagues.length - 1; i >= 0; i--) {
-      const l = leagues[i];
-      if (energy >= l.minEnergy && fire >= l.minFire) return l;
+      if (energy >= leagues[i].minEnergy && fire >= leagues[i].minFire) return leagues[i];
     }
     return leagues[0];
   }
-
-  document.getElementById('openLeaguesBtn').addEventListener('click', () => {
-    leaguesModal.classList.remove('hidden');
-    updateLeagueDisplay();
-  });
-  document.getElementById('closeLeaguesBtn').addEventListener('click', () => leaguesModal.classList.add('hidden'));
 
   function updateLeagueDisplay() {
     const league = getCurrentLeague();
     const leaguesDiv = document.getElementById('leaguesList');
     if (!leaguesDiv) return;
     let html = '<div style="margin-bottom:15px;">';
-    leagues.forEach((l, idx) => {
+    leagues.forEach(l => {
       const active = (league.name === l.name);
       html += `<div style="margin:8px 0; padding:10px; border-radius:15px; background:${active?'#2d2d44':'#1a1a2e'}; border:2px solid ${active?'#f9d423':'transparent'}">
         <span class="league-badge ${l.class}">${l.name}</span> <span style="color:#aaa;">💎 ${l.minEnergy.toLocaleString()} | 🔥 ${l.minFire}</span>
@@ -717,53 +646,26 @@
     leaguesDiv.innerHTML = html;
   }
 
-  document.getElementById('closeChatBtn').addEventListener('click', () => chatModal.classList.add('hidden'));
-
-  // --- Скины ---
+  // Скины
   function applySkin(skin) {
     state.currentSkin = skin;
     switch(skin) {
-      case 'diamond':
-        crystal.style.background = 'radial-gradient(circle at 30% 30%, #c77dff, #5a189a)';
-        crystal.style.boxShadow = '0 0 60px #9d4edd, 0 0 120px rgba(157,78,221,0.5)';
-        crystal.textContent = '💎';
-        break;
-      case 'fire':
-        crystal.style.background = 'radial-gradient(circle at 30% 30%, #ff7b54, #b91c1c)';
-        crystal.style.boxShadow = '0 0 70px #ff5400, 0 0 130px rgba(255,84,0,0.6)';
-        crystal.textContent = '🔥';
-        break;
-      case 'ice':
-        crystal.style.background = 'radial-gradient(circle at 30% 30%, #a0d2ff, #1e3a8a)';
-        crystal.style.boxShadow = '0 0 70px #3b82f6, 0 0 130px rgba(59,130,246,0.6)';
-        crystal.textContent = '❄️';
-        break;
-      case 'nature':
-        crystal.style.background = 'radial-gradient(circle at 30% 30%, #86efac, #166534)';
-        crystal.style.boxShadow = '0 0 70px #22c55e, 0 0 130px rgba(34,197,94,0.6)';
-        crystal.textContent = '🌿';
-        break;
-      case 'secret_coin':
-        crystal.style.background = 'radial-gradient(circle at 30% 30%, #ffd700, #b8860b)';
-        crystal.style.boxShadow = '0 0 80px #ffd700, 0 0 140px rgba(255,215,0,0.8)';
-        crystal.textContent = '🪙';
-        break;
+      case 'diamond': crystal.style.background = 'radial-gradient(circle at 30% 30%, #c77dff, #5a189a)'; crystal.style.boxShadow = '0 0 60px #9d4edd, 0 0 120px rgba(157,78,221,0.5)'; crystal.textContent = '💎'; break;
+      case 'fire': crystal.style.background = 'radial-gradient(circle at 30% 30%, #ff7b54, #b91c1c)'; crystal.style.boxShadow = '0 0 70px #ff5400, 0 0 130px rgba(255,84,0,0.6)'; crystal.textContent = '🔥'; break;
+      case 'ice': crystal.style.background = 'radial-gradient(circle at 30% 30%, #a0d2ff, #1e3a8a)'; crystal.style.boxShadow = '0 0 70px #3b82f6, 0 0 130px rgba(59,130,246,0.6)'; crystal.textContent = '❄️'; break;
+      case 'nature': crystal.style.background = 'radial-gradient(circle at 30% 30%, #86efac, #166534)'; crystal.style.boxShadow = '0 0 70px #22c55e, 0 0 130px rgba(34,197,94,0.6)'; crystal.textContent = '🌿'; break;
+      case 'secret_coin': crystal.style.background = 'radial-gradient(circle at 30% 30%, #ffd700, #b8860b)'; crystal.style.boxShadow = '0 0 80px #ffd700, 0 0 140px rgba(255,215,0,0.8)'; crystal.textContent = '🪙'; break;
     }
-    document.querySelectorAll('.skin-option').forEach(opt => opt.classList.toggle('selected', opt.dataset.skin === skin));
+    document.querySelectorAll('.skin-option').forEach(o => o.classList.toggle('selected', o.dataset.skin === skin));
   }
 
   function addSecretSkinButton() {
     if (state.secretUnlocked) return;
     state.secretUnlocked = true;
     const container = document.getElementById('skinSelector');
-    const btn = document.createElement('div');
-    btn.className = 'skin-option';
-    btn.dataset.skin = 'secret_coin';
+    const btn = document.createElement('div'); btn.className = 'skin-option'; btn.dataset.skin = 'secret_coin';
     btn.textContent = '🪙 Элитная монета';
-    btn.addEventListener('click', () => {
-      applySkin('secret_coin');
-      savePlayerData();
-    });
+    btn.addEventListener('click', () => { applySkin('secret_coin'); savePlayerData(); });
     container.appendChild(btn);
     savePlayerData();
   }
@@ -781,24 +683,21 @@
     savePlayerData();
   });
 
-  skinOptions.forEach(opt => opt.addEventListener('click', () => {
-    applySkin(opt.dataset.skin);
-    savePlayerData();
-  }));
+  skinOptions.forEach(opt => opt.addEventListener('click', () => { applySkin(opt.dataset.skin); savePlayerData(); }));
 
-  // --- Бусты ---
+  // Бусты
   function canUseBoost(type) {
-    const now = Date.now(), cd = 10 * 60 * 1000;
+    const now = Date.now(), cd = 10*60*1000;
     if (type === 'x2') return (now - state.lastX2Used) >= cd;
     if (type === 'autoTap') return (now - state.lastAutoTapUsed) >= cd;
     return true;
   }
 
   function updateBoostButtons() {
-    const now = Date.now(), cd = 10 * 60 * 1000;
+    const now = Date.now(), cd = 10*60*1000;
     if (!canUseBoost('x2')) {
       boost2xBtn.classList.add('cooldown');
-      const r = Math.ceil((state.lastX2Used + cd - now) / 1000);
+      const r = Math.ceil((state.lastX2Used + cd - now)/1000);
       boost2xBtn.textContent = `⏳ x2 (${formatTime(r)})`;
     } else {
       boost2xBtn.classList.remove('cooldown');
@@ -806,7 +705,7 @@
     }
     if (!canUseBoost('autoTap')) {
       boostAutoBtn.classList.add('cooldown');
-      const r = Math.ceil((state.lastAutoTapUsed + cd - now) / 1000);
+      const r = Math.ceil((state.lastAutoTapUsed + cd - now)/1000);
       boostAutoBtn.textContent = `⏳ Авто-тап (${formatTime(r)})`;
     } else {
       boostAutoBtn.classList.remove('cooldown');
@@ -814,42 +713,24 @@
     }
   }
 
-  function formatTime(sec) {
-    const m = Math.floor(sec / 60), s = sec % 60;
-    return `${m}:${s < 10 ? '0' + s : s}`;
-  }
-
+  function formatTime(sec) { const m = Math.floor(sec/60), s = sec%60; return `${m}:${s<10?'0'+s:s}`; }
   setInterval(updateBoostButtons, 1000);
 
   function activateBoost(type) {
     if (!canUseBoost(type)) return;
     const now = Date.now();
     if (type === 'x2') {
-      state.boosts.x2 = true;
-      state.lastX2Used = now;
-      boost2xBtn.classList.add('active-boost');
-      savePlayerData();
-      setTimeout(() => {
-        state.boosts.x2 = false;
-        boost2xBtn.classList.remove('active-boost');
-        savePlayerData();
-      }, 60000);
+      state.boosts.x2 = true; state.lastX2Used = now;
+      boost2xBtn.classList.add('active-boost'); savePlayerData();
+      setTimeout(() => { state.boosts.x2 = false; boost2xBtn.classList.remove('active-boost'); savePlayerData(); }, 60000);
     } else {
-      state.boosts.autoTap = true;
-      state.lastAutoTapUsed = now;
-      startAutoTap();
-      boostAutoBtn.classList.add('active-boost');
-      savePlayerData();
-      setTimeout(() => {
-        state.boosts.autoTap = false;
-        stopAutoTap();
-        boostAutoBtn.classList.remove('active-boost');
-        savePlayerData();
-      }, 60000);
+      state.boosts.autoTap = true; state.lastAutoTapUsed = now;
+      startAutoTap(); boostAutoBtn.classList.add('active-boost'); savePlayerData();
+      setTimeout(() => { state.boosts.autoTap = false; stopAutoTap(); boostAutoBtn.classList.remove('active-boost'); savePlayerData(); }, 60000);
     }
   }
 
-  // --- Тапы и механики ---
+  // Главный обработчик тапа по кристаллу
   function handleTap(e) {
     e.preventDefault();
     let gained = state.tapPower;
@@ -866,23 +747,14 @@
   }
 
   function createParticle(e, text, color) {
-    const particle = document.createElement('div');
-    particle.className = 'particle';
-    particle.textContent = text;
-    particle.style.color = color;
-    particle.style.left = `${e.clientX - crystalArea.getBoundingClientRect().left - 20}px`;
-    particle.style.top = `${e.clientY - crystalArea.getBoundingClientRect().top - 20}px`;
-    crystalArea.appendChild(particle);
-    setTimeout(() => particle.remove(), 800);
+    const p = document.createElement('div'); p.className = 'particle'; p.textContent = text; p.style.color = color;
+    p.style.left = (e.clientX - crystalArea.getBoundingClientRect().left - 20) + 'px';
+    p.style.top = (e.clientY - crystalArea.getBoundingClientRect().top - 20) + 'px';
+    crystalArea.appendChild(p);
+    setTimeout(() => p.remove(), 800);
   }
 
-  setInterval(() => {
-    if (state.passivePower > 0) {
-      state.energy += state.passivePower;
-      updateUI();
-      savePlayerData();
-    }
-  }, 1000);
+  setInterval(() => { if (state.passivePower > 0) { state.energy += state.passivePower; updateUI(); savePlayerData(); } }, 1000);
 
   function startAutoTap() {
     if (state.autoTapInterval) clearInterval(state.autoTapInterval);
@@ -897,10 +769,7 @@
   }
 
   function stopAutoTap() {
-    if (state.autoTapInterval) {
-      clearInterval(state.autoTapInterval);
-      state.autoTapInterval = null;
-    }
+    if (state.autoTapInterval) { clearInterval(state.autoTapInterval); state.autoTapInterval = null; }
   }
 
   function getUpgradeCost(key) {
@@ -947,40 +816,35 @@
     updateFireDisplay();
   }
 
-  // --- Секретный код "В сек" ---
+  // Секретный код
   const SECRET = ['-','.','-','-','.'];
   let gestureStart = null;
-
   function setupSecretCode() {
     passiveStatDiv.addEventListener('touchstart', onGestureStart, {passive: false});
     passiveStatDiv.addEventListener('touchend', onGestureEnd);
     passiveStatDiv.addEventListener('mousedown', onGestureStart);
     passiveStatDiv.addEventListener('mouseup', onGestureEnd);
   }
-
   function disableSecretCode() {
     passiveStatDiv.removeEventListener('touchstart', onGestureStart);
     passiveStatDiv.removeEventListener('touchend', onGestureEnd);
     passiveStatDiv.removeEventListener('mousedown', onGestureStart);
     passiveStatDiv.removeEventListener('mouseup', onGestureEnd);
   }
-
   function onGestureStart(e) {
     e.preventDefault();
     const p = e.touches ? e.touches[0] : e;
     gestureStart = { x: p.clientX, y: p.clientY };
   }
-
   function onGestureEnd(e) {
     if (!gestureStart || state.secretCodeUsed) return;
     const p = e.changedTouches ? e.changedTouches[0] : e;
     const dx = p.clientX - gestureStart.x, dy = p.clientY - gestureStart.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
+    const dist = Math.sqrt(dx*dx+dy*dy);
     let gesture = null;
     if (dist < 10) gesture = '.';
     else if (Math.abs(dx) > 30 && Math.abs(dx) > Math.abs(dy)) gesture = '-';
     gestureStart = null;
-
     if (gesture === SECRET[state.secretCodeProgress]) {
       state.secretCodeProgress++;
       if (state.secretCodeProgress === SECRET.length) {
@@ -989,14 +853,14 @@
         savePlayerData();
         updateUI();
         disableSecretCode();
-        alert('🎉 Секретный код активирован! +50 000 монет.');
+        showToast('🎉 Секретный код активирован! +50 000 монет.', '#f9d423');
       }
     } else {
       state.secretCodeProgress = 0;
     }
   }
 
-  // --- PvP ---
+  // PvP – открытие битвы
   openPvPBtn.addEventListener('click', () => {
     pvpModal.classList.remove('hidden');
     pvpSearching.classList.remove('hidden');
@@ -1011,17 +875,11 @@
       searchTime++;
       document.getElementById('searchTimer').textContent = searchTime;
     }, 1000);
-
-    // Добавляем себя в очередь
     const queueRef = db.ref('pvpQueue/' + state.userId);
-    queueRef.set({
-      energy: state.energy,
-      uid: state.userId,
-      timestamp: Date.now()
-    }).then(() => {
+    queueRef.set({ energy: state.energy, uid: state.userId, timestamp: Date.now() }).then(() => {
       const listener = db.ref('pvpQueue').on('value', async snap => {
         const queue = snap.val() || {};
-        const opponentId = Object.keys(queue).find(uid => uid !== state.userId && Math.abs((queue[uid].energy || 0) - state.energy) <= state.energy * 0.4);
+        const opponentId = Object.keys(queue).find(uid => uid !== state.userId && Math.abs((queue[uid].energy||0) - state.energy) <= state.energy * 0.4);
         if (opponentId) {
           db.ref('pvpQueue').off('value', listener);
           clearInterval(searchInterval);
@@ -1029,7 +887,6 @@
           await db.ref('pvpQueue/' + opponentId).remove();
           createPvpGame(opponentId);
         } else if (searchTime > 15) {
-          // расширенный поиск
           const anyOpponent = Object.keys(queue).find(uid => uid !== state.userId);
           if (anyOpponent) {
             db.ref('pvpQueue').off('value', listener);
@@ -1064,13 +921,10 @@
     state.pvp.searching = false;
     pvpSearching.classList.add('hidden');
     pvpGameArea.classList.remove('hidden');
-    state.pvp.myScore = 0;
-    state.pvp.opponentScore = 0;
     myFruitScore.textContent = '0';
     opponentFruitScore.textContent = '0';
     pvpTimerDisplay.textContent = '60';
     state.pvp.timer = 60;
-
     const gameRef = db.ref('pvpGames/' + gameId);
     gameRef.child('scores').on('value', snap => {
       const scores = snap.val() || {};
@@ -1078,11 +932,8 @@
       opponentFruitScore.textContent = state.pvp.opponentScore;
     });
     gameRef.child('status').on('value', snap => {
-      if (snap.val() === 'finished') {
-        endPvPGame();
-      }
+      if (snap.val() === 'finished') endPvPGame();
     });
-
     startFruitFall();
     state.pvp.interval = setInterval(() => {
       state.pvp.timer--;
@@ -1107,7 +958,6 @@
     const oppScore = state.pvp.opponentScore;
     let fireEarned = 0;
     if (myScore > oppScore) {
-      // победа
       fireEarned = 10;
       if (state.energy < (state.pvp.opponentEnergy || state.energy)) fireEarned = 20;
       else if (state.energy > (state.pvp.opponentEnergy || state.energy)) fireEarned = 10;
@@ -1117,7 +967,7 @@
       fireEarned = 5;
     }
     state.fire += fireEarned;
-    alert(`Битва окончена! Вы ${myScore > oppScore ? 'победили' : (myScore < oppScore ? 'проиграли' : 'сыграли вничью')}. Заработано 🔥 ${fireEarned}`);
+    showToast(`Битва окончена! Вы ${myScore > oppScore ? 'победили' : (myScore < oppScore ? 'проиграли' : 'сыграли вничью')}. 🔥 +${fireEarned}`, '#f9d423');
     savePlayerData();
     updateUI();
     db.ref('pvpGames/' + state.pvp.gameId).remove();
@@ -1128,32 +978,24 @@
 
   function startFruitFall() {
     basket.style.left = '50%';
-    let basketPos = 50;
     pvpField.addEventListener('touchmove', moveBasket);
     pvpField.addEventListener('mousemove', moveBasket);
-
-    state.pvp.fruitInterval = setInterval(() => {
-      if (!state.pvp.active) return;
-      createFruit();
-    }, 800);
+    state.pvp.fruitInterval = setInterval(() => { if (state.pvp.active) createFruit(); }, 800);
   }
 
   function stopFruitFall() {
     clearInterval(state.pvp.fruitInterval);
-    // убрать обработчики движения
     pvpField.removeEventListener('touchmove', moveBasket);
     pvpField.removeEventListener('mousemove', moveBasket);
-    // удалить оставшиеся фрукты
-    const fruits = document.querySelectorAll('.fruit');
-    fruits.forEach(f => f.remove());
+    document.querySelectorAll('.fruit').forEach(f => f.remove());
   }
 
   function moveBasket(e) {
     e.preventDefault();
     const rect = pvpField.getBoundingClientRect();
     const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-    let basketPos = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    basket.style.left = basketPos + '%';
+    let pos = Math.max(0, Math.min(100, (x / rect.width) * 100));
+    basket.style.left = pos + '%';
   }
 
   function createFruit() {
@@ -1164,19 +1006,12 @@
     fruit.style.left = Math.random() * 90 + '%';
     fruit.style.top = '-40px';
     pvpField.appendChild(fruit);
-    let fallSpeed = 2 + Math.random() * 2;
+    let speed = 2 + Math.random() * 2;
     const fallInterval = setInterval(() => {
-      if (!state.pvp.active) {
-        clearInterval(fallInterval);
-        fruit.remove();
-        return;
-      }
-      const top = parseFloat(fruit.style.top) + fallSpeed;
+      if (!state.pvp.active) { clearInterval(fallInterval); fruit.remove(); return; }
+      const top = parseFloat(fruit.style.top) + speed;
       fruit.style.top = top + 'px';
-      if (top > 280) {
-        clearInterval(fallInterval);
-        fruit.remove();
-      }
+      if (top > 280) { clearInterval(fallInterval); fruit.remove(); return; }
       const basketRect = basket.getBoundingClientRect();
       const fruitRect = fruit.getBoundingClientRect();
       if (fruitRect.bottom >= basketRect.top && fruitRect.top <= basketRect.bottom &&
@@ -1190,29 +1025,20 @@
     }, 20);
   }
 
-  cancelPvP.addEventListener('click', () => {
-    if (state.pvp.searching) {
-      db.ref('pvpQueue/' + state.userId).remove();
-    }
-    if (state.pvp.gameId) {
-      db.ref('pvpGames/' + state.pvp.gameId).remove();
-      stopPvPGame();
-    }
+  document.getElementById('cancelPvP').addEventListener('click', () => {
+    if (state.pvp.searching) db.ref('pvpQueue/' + state.userId).remove();
+    if (state.pvp.gameId) db.ref('pvpGames/' + state.pvp.gameId).remove();
+    stopPvPGame();
     pvpModal.classList.add('hidden');
     state.pvp.searching = false;
     state.pvp.active = false;
   });
 
-  // Привязка основных событий
   crystal.addEventListener('pointerdown', handleTap);
   boost2xBtn.addEventListener('click', () => activateBoost('x2'));
   boostAutoBtn.addEventListener('click', () => activateBoost('autoTap'));
-  window.addEventListener('beforeunload', () => {
-    stopAutoTap();
-    savePlayerData();
-  });
+  window.addEventListener('beforeunload', () => { stopAutoTap(); savePlayerData(); });
 
-  // Инициализация интерфейса
   updateUI();
 </script>
 </body>
