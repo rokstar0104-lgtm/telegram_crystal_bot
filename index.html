@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, shrink-to-fit=no">
-  <title>Crystal Tap – Эволюция кликера</title>
+  <title>Crystal Tap – Банк и Битвы</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
@@ -106,7 +106,6 @@
     .skin-option.selected { border-color:#f9d423; box-shadow:0 0 20px rgba(249,212,35,0.5); background:rgba(249,212,35,0.2); }
     .hidden { display:none !important; }
     button { touch-action:manipulation; }
-
     .menu-btn {
       width:100%; background:linear-gradient(135deg, #f9d423, #ff4e50);
       border:none; border-radius:25px; padding:14px; color:black;
@@ -158,10 +157,7 @@
 
 <div class="game-container" style="visibility:hidden;">
   <div class="header">
-    <div class="score-box">
-      <span class="score-icon">💎</span>
-      <span class="score-text" id="scoreDisplay">0</span>
-    </div>
+    <div class="score-box"><span class="score-icon">💎</span><span class="score-text" id="scoreDisplay">0</span></div>
     <div class="fire-badge" id="fireBadge">🔥 <span id="fireAmount">0</span></div>
     <div class="id-badge" id="playerIdDisplay">ID: ...</div>
   </div>
@@ -195,6 +191,7 @@
       <div class="menu-item" id="menuTop">🏆 Топ</div>
       <div class="menu-item" id="menuLeagues">🏅 Лиги</div>
       <div class="menu-item hidden" id="menuBattle">⚔️ Битва</div>
+      <div class="menu-item" id="menuBank">🏦 Банк</div>
     </div>
     <button class="modal-btn" id="closeMenuBtn">Закрыть</button>
   </div>
@@ -272,11 +269,38 @@
   </div>
 </div>
 
+<div id="bankModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>🏦 Банк</h3>
+    <div class="tabs">
+      <button class="tab-btn active" id="investTabBtn">Инвестиции</button>
+      <button class="tab-btn" id="insuranceTabBtn">Страховка</button>
+    </div>
+    <div id="investTabContent">
+      <h4>Открыть предложение</h4>
+      <input type="number" class="modal-input" id="investAmount" placeholder="Сумма (💎)">
+      <input type="number" class="modal-input" id="investPercent" placeholder="Процент возврата (например, 15)">
+      <input type="number" class="modal-input" id="investDuration" placeholder="Срок (минут)">
+      <button class="modal-btn" id="createInvestBtn">Создать</button>
+      <h4 style="margin-top:15px;">Активные предложения</h4>
+      <div id="investList"></div>
+    </div>
+    <div id="insuranceTabContent" class="hidden">
+      <p>Страховка снизит потерю 🔥 при поражении на 50%.</p>
+      <p>Стоимость: 2000 💎</p>
+      <button class="modal-btn" id="buyInsuranceBtn">Купить страховку</button>
+      <p id="insuranceStatus" style="margin-top:10px;">Нет активной страховки</p>
+    </div>
+    <button class="modal-btn" id="closeBankBtn" style="margin-top:10px;">Закрыть</button>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
 <script>
+  // Конфигурация Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyDFR3PN4FizMbTnOysavtDJ4sgZIKnPnCw",
     authDomain: "crystal-tap-game.firebaseapp.com",
@@ -290,6 +314,7 @@
   const auth = firebase.auth();
   const db = firebase.database();
 
+  // Игровое состояние
   const state = {
     energy: 0, tapPower: 1, passivePower: 0,
     upgrades: {
@@ -304,6 +329,7 @@
     userId: null, friends: [], dataLoaded: false,
     secretCodeProgress: 0, secretCodeUsed: false,
     fire: 0, leagueBonuses: {},
+    hasInsurance: false,
     pvp: {
       active: false, searching: false, opponent: null, gameId: null,
       myScore: 0, opponentScore: 0, timer: 60, interval: null, fruitInterval: null,
@@ -311,7 +337,7 @@
     }
   };
 
-  // DOM
+  // DOM элементы
   const scoreDisplay = document.getElementById('scoreDisplay');
   const tapPowerDisplay = document.getElementById('tapPower');
   const passivePowerDisplay = document.getElementById('passivePower');
@@ -343,8 +369,9 @@
   const allPlayersModal = document.getElementById('allPlayersModal');
   const leaderboardModal = document.getElementById('leaderboardModal');
   const leaguesModal = document.getElementById('leaguesModal');
+  const bankModal = document.getElementById('bankModal');
 
-  // Toast
+  // Toast уведомление
   function showToast(text, color = '#f9d423') {
     const toast = document.getElementById('toast');
     toast.textContent = text; toast.style.background = color;
@@ -394,7 +421,7 @@
     } else menuBattle.classList.add('hidden');
   }
 
-  // Загрузка данных
+  // Загрузка и сохранение данных с мгновенным обновлением
   function loadInitialData(uid) {
     db.ref('players/' + uid).once('value').then(snapshot => {
       const data = snapshot.val();
@@ -412,6 +439,7 @@
         state.secretCodeUsed = data.secretCodeUsed || false;
         state.fire = data.fire || 0;
         state.leagueBonuses = data.leagueBonuses || {};
+        state.hasInsurance = data.hasInsurance || false;
         if (data.friends) state.friends = Object.keys(data.friends);
       } else savePlayerData();
 
@@ -424,6 +452,20 @@
       if (state.secretCodeUsed) disableSecretCode();
       checkLeagueUpgrade();
       updateFireDisplay();
+      // Слушаем изменения баланса и огня в реальном времени (для мгновенных переводов)
+      db.ref('players/' + uid + '/energy').on('value', snap => {
+        if (state.dataLoaded) {
+          state.energy = snap.val() || 0;
+          updateUI();
+        }
+      });
+      db.ref('players/' + uid + '/fire').on('value', snap => {
+        if (state.dataLoaded) {
+          state.fire = snap.val() || 0;
+          updateFireDisplay();
+          updateUI();
+        }
+      });
       loadingScreen.style.opacity = '0';
       setTimeout(() => loadingScreen.classList.add('hidden'), 500);
       document.querySelector('.game-container').style.visibility = 'visible';
@@ -444,7 +486,7 @@
       secretUnlocked: state.secretUnlocked, tapCountOnLabel: state.tapCountOnLabel,
       lastX2Used: state.lastX2Used, lastAutoTapUsed: state.lastAutoTapUsed,
       secretCodeUsed: state.secretCodeUsed, fire: state.fire,
-      leagueBonuses: state.leagueBonuses
+      leagueBonuses: state.leagueBonuses, hasInsurance: state.hasInsurance
     });
   }
 
@@ -528,14 +570,13 @@
     db.ref('friendRequests/' + state.userId + '/' + fromId).remove();
   }
 
-  // Исправленная отправка монет
+  // Мгновенная отправка монет
   function sendCoinsToFriend(fid) {
     const amt = prompt('Сколько отправить?');
     if (!amt || isNaN(amt) || amt <= 0) return;
     const n = parseInt(amt);
     if (n > state.energy) { showToast('Недостаточно монет'); return; }
     state.energy -= n;
-    // атомарно увеличиваем баланс друга
     db.ref('players/' + fid + '/energy').transaction(e => (e || 0) + n);
     savePlayerData();
     updateUI();
@@ -565,7 +606,7 @@
     };
   }
 
-  // Табы друзей
+  // Табы друзей и модалки
   document.getElementById('friendsTabBtn').addEventListener('click', () => {
     document.getElementById('friendsTabContent').classList.remove('hidden');
     document.getElementById('requestsTabContent').classList.add('hidden');
@@ -580,10 +621,9 @@
     db.ref('friendRequests/' + state.userId).once('value').then(s => renderRequestsList(s.val() || {}));
   });
   document.getElementById('closeFriendsBtn').addEventListener('click', () => friendsModal.classList.add('hidden'));
-
   document.getElementById('closeChatBtn').addEventListener('click', () => chatModal.classList.add('hidden'));
 
-  // Вкладки модалок (меню)
+  // Меню навигация
   document.getElementById('menuFriends').addEventListener('click', () => {
     document.getElementById('menuModal').classList.add('hidden');
     friendsModal.classList.remove('hidden');
@@ -729,7 +769,7 @@
     }
   }
 
-  // Тапы
+  // Тапы и механики
   function handleTap(e) {
     e.preventDefault();
     let gained = state.tapPower;
@@ -832,7 +872,7 @@
     } else state.secretCodeProgress = 0;
   }
 
-  // PvP – исправленная логика и награды
+  // PvP битва (исправленная)
   document.getElementById('menuBattle').addEventListener('click', () => {
     document.getElementById('menuModal').classList.add('hidden');
     pvpModal.classList.remove('hidden');
@@ -894,30 +934,27 @@
     }, 1000);
   }
 
-  function finishPvpGame() {
-    if (state.pvp.gameId) db.ref('pvpGames/' + state.pvp.gameId + '/status').set('finished');
-  }
+  function finishPvpGame() { if (state.pvp.gameId) db.ref('pvpGames/' + state.pvp.gameId + '/status').set('finished'); }
 
   function endPvPGame() {
     clearInterval(state.pvp.interval);
     stopFruitFall();
-
-    // Берем финальные счета из локального состояния
-    const myScore = state.pvp.myScore;
-    const oppScore = state.pvp.opponentScore;
+    const myScore = state.pvp.myScore, oppScore = state.pvp.opponentScore;
     let fireDelta = 0;
+    if (myScore > oppScore) fireDelta = 15;       // победа
+    else if (myScore < oppScore) fireDelta = -10; // поражение
+    else fireDelta = 5;                           // ничья
 
-    if (myScore > oppScore) {
-      fireDelta = 15; // победа
-    } else if (myScore < oppScore) {
-      fireDelta = -10; // поражение
-    } else {
-      fireDelta = 5; // ничья
+    // Если есть страховка, поражение смягчается на 50%
+    if (state.hasInsurance && fireDelta < 0) {
+      fireDelta = Math.ceil(fireDelta / 2);
+      showToast('Страховка уменьшила потерю огня!', '#f9d423');
+      state.hasInsurance = false; // страховка одноразовая
+      savePlayerData();
     }
 
-    // Не даём уйти в минус
     state.fire = Math.max(0, state.fire + fireDelta);
-    const message = myScore > oppScore ? `Победа! +15🔥` : (myScore < oppScore ? `Поражение –10🔥` : `Ничья +5🔥`);
+    const message = myScore > oppScore ? `Победа! +15🔥` : (myScore < oppScore ? `Поражение ${fireDelta}🔥` : `Ничья +5🔥`);
     showToast(`Битва окончена! ${message}`, '#f9d423');
     savePlayerData(); updateUI();
     db.ref('pvpGames/' + state.pvp.gameId).remove();
@@ -969,11 +1006,144 @@
     state.pvp.searching = false; state.pvp.active = false;
   });
 
-  // Меню
+  // Банк
+  document.getElementById('menuBank').addEventListener('click', () => {
+    document.getElementById('menuModal').classList.add('hidden');
+    bankModal.classList.remove('hidden');
+    document.getElementById('investTabBtn').click();
+    updateInsuranceStatus();
+  });
+  document.getElementById('closeBankBtn').addEventListener('click', () => bankModal.classList.add('hidden'));
+
+  // Вкладки банка
+  document.getElementById('investTabBtn').addEventListener('click', () => {
+    document.getElementById('investTabContent').classList.remove('hidden');
+    document.getElementById('insuranceTabContent').classList.add('hidden');
+    document.getElementById('investTabBtn').classList.add('active');
+    document.getElementById('insuranceTabBtn').classList.remove('active');
+    loadInvestments();
+  });
+  document.getElementById('insuranceTabBtn').addEventListener('click', () => {
+    document.getElementById('investTabContent').classList.add('hidden');
+    document.getElementById('insuranceTabContent').classList.remove('hidden');
+    document.getElementById('insuranceTabBtn').classList.add('active');
+    document.getElementById('investTabBtn').classList.remove('active');
+  });
+
+  // Страховка
+  function updateInsuranceStatus() {
+    document.getElementById('insuranceStatus').textContent = state.hasInsurance ? '✅ Активна' : 'Нет активной страховки';
+  }
+  document.getElementById('buyInsuranceBtn').addEventListener('click', () => {
+    const cost = 2000;
+    if (state.energy < cost) { showToast('Недостаточно монет'); return; }
+    if (state.hasInsurance) { showToast('У вас уже есть страховка'); return; }
+    state.energy -= cost;
+    state.hasInsurance = true;
+    savePlayerData();
+    updateUI();
+    updateInsuranceStatus();
+    showToast('Страховка куплена!');
+  });
+
+  // Инвестиции
+  function loadInvestments() {
+    db.ref('investments').once('value').then(snap => {
+      const data = snap.val() || {};
+      const now = Date.now();
+      const listDiv = document.getElementById('investList');
+      let html = '';
+      Object.entries(data).forEach(([id, inv]) => {
+        if (inv.status === 'active') {
+          const timeLeft = Math.max(0, Math.ceil((inv.endTime - now) / 60000));
+          html += `<div style="background:#2d2d44; padding:10px; border-radius:10px; margin:5px 0;">
+            <b>${inv.creator === state.userId ? 'Ваше' : 'Чужое'}</b> – ${inv.amount}💎 под ${inv.percent}%
+            (осталось ${timeLeft} мин)
+            ${inv.creator !== state.userId ? `<button class="modal-btn invest-btn" data-id="${id}">Вложить</button>` : ''}
+            ${inv.creator === state.userId ? `<button class="modal-btn cancel-invest-btn" data-id="${id}">Отменить</button>` : ''}
+          </div>`;
+        }
+      });
+      listDiv.innerHTML = html || '<p style="color:#aaa">Нет активных предложений</p>';
+      document.querySelectorAll('.invest-btn').forEach(b => {
+        b.addEventListener('click', () => investInProject(b.dataset.id));
+      });
+      document.querySelectorAll('.cancel-invest-btn').forEach(b => {
+        b.addEventListener('click', () => cancelInvestment(b.dataset.id));
+      });
+    });
+  }
+
+  document.getElementById('createInvestBtn').addEventListener('click', () => {
+    const amount = parseInt(document.getElementById('investAmount').value);
+    const percent = parseFloat(document.getElementById('investPercent').value);
+    const duration = parseInt(document.getElementById('investDuration').value);
+    if (!amount || !percent || !duration || amount <= 0 || percent <= 0 || duration <= 0) {
+      showToast('Заполните все поля'); return;
+    }
+    if (amount > state.energy) { showToast('Недостаточно монет'); return; }
+    state.energy -= amount;
+    const endTime = Date.now() + duration * 60000;
+    const invRef = db.ref('investments').push();
+    invRef.set({
+      creator: state.userId,
+      amount: amount,
+      percent: percent,
+      endTime: endTime,
+      status: 'active',
+      invested: 0
+    }).then(() => {
+      savePlayerData();
+      updateUI();
+      loadInvestments();
+      document.getElementById('investAmount').value = '';
+      document.getElementById('investPercent').value = '';
+      document.getElementById('investDuration').value = '';
+      showToast('Инвестиционное предложение создано');
+    });
+  });
+
+  function investInProject(invId) {
+    db.ref('investments/' + invId).once('value').then(snap => {
+      const inv = snap.val();
+      if (!inv || inv.status !== 'active') { showToast('Недоступно'); return; }
+      const amount = inv.amount;
+      if (state.energy < amount) { showToast('Недостаточно монет'); return; }
+      state.energy -= amount;
+      // Переводим деньги создателю
+      db.ref('players/' + inv.creator + '/energy').transaction(e => (e || 0) + amount);
+      // Помечаем инвестицию как завершённую (или добавляем инвестора)
+      db.ref('investments/' + invId).update({
+        investor: state.userId,
+        investedAmount: amount,
+        status: 'invested'
+      });
+      savePlayerData();
+      updateUI();
+      loadInvestments();
+      showToast(`Вы вложили ${amount}💎`);
+    });
+  }
+
+  function cancelInvestment(invId) {
+    if (confirm('Отменить предложение? Монеты вернутся.')) {
+      db.ref('investments/' + invId).once('value').then(snap => {
+        const inv = snap.val();
+        if (inv && inv.creator === state.userId && inv.status === 'active') {
+          state.energy += inv.amount;
+          db.ref('investments/' + invId).remove();
+          savePlayerData();
+          updateUI();
+          loadInvestments();
+        }
+      });
+    }
+  }
+
+  // Меню и основные обработчики
   document.getElementById('openMenuBtn').addEventListener('click', () => document.getElementById('menuModal').classList.remove('hidden'));
   document.getElementById('closeMenuBtn').addEventListener('click', () => document.getElementById('menuModal').classList.add('hidden'));
 
-  // Инициализация
   crystal.addEventListener('pointerdown', handleTap);
   boost2xBtn.addEventListener('click', () => activateBoost('x2'));
   boostAutoBtn.addEventListener('click', () => activateBoost('autoTap'));
