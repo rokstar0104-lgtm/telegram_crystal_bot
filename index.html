@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, shrink-to-fit=no">
-  <title>Crystal Tap – Банк и Битвы</title>
+  <title>Crystal Tap – Банк, Фабрика и Битвы</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
@@ -55,6 +55,7 @@
       background:rgba(255,255,255,0.15); border-radius:30px;
       padding:6px 14px; font-weight:bold; font-size:0.8rem;
       backdrop-filter:blur(5px); color:#ddd; letter-spacing:0.5px;
+      cursor:pointer; user-select:all;
     }
     .crystal-area { position:relative; display:flex; justify-content:center; align-items:center; margin:20px 0; }
     .crystal {
@@ -153,6 +154,7 @@
     .credit-rating { font-size:0.9rem; color:#ffd700; margin-left:5px; }
     .deal-item { background:#2d2d44; padding:10px; border-radius:10px; margin:8px 0; }
     .deal-item p { margin:5px 0; }
+    .avatar { margin-right:5px; }
   </style>
 </head>
 <body>
@@ -279,6 +281,7 @@
     <div class="tabs">
       <button class="tab-btn active" id="investTabBtn">Инвестиции</button>
       <button class="tab-btn" id="myDealsTabBtn">Мои сделки</button>
+      <button class="tab-btn" id="factoryTabBtn">Фабрика</button>
       <button class="tab-btn" id="insuranceTabBtn">Страховка</button>
     </div>
     <div id="investTabContent">
@@ -293,6 +296,14 @@
     <div id="myDealsTabContent" class="hidden">
       <h4>Мои активные сделки</h4>
       <div id="myDealsList"></div>
+    </div>
+    <div id="factoryTabContent" class="hidden">
+      <h4>🏭 Фабрика предметов</h4>
+      <p>Производство занимает 30 минут. Стоимость запуска: 2000 💎.</p>
+      <button class="modal-btn" id="startProductionBtn">Запустить производство</button>
+      <p id="productionStatus" style="margin-top:10px;">Нет активного производства</p>
+      <h4 style="margin-top:15px;">Инвентарь</h4>
+      <div id="inventoryList"></div>
     </div>
     <div id="insuranceTabContent" class="hidden">
       <p>Страховка снизит потерю 🔥 при поражении на 50%.</p>
@@ -309,7 +320,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
 <script>
-  // Конфигурация Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyDFR3PN4FizMbTnOysavtDJ4sgZIKnPnCw",
     authDomain: "crystal-tap-game.firebaseapp.com",
@@ -338,6 +348,8 @@
     secretCodeProgress: 0, secretCodeUsed: false,
     fire: 0, leagueBonuses: {},
     hasInsurance: false, creditRating: 0,
+    production: { active: false, endTime: 0, item: null },
+    inventory: [],
     pvp: {
       active: false, searching: false, opponent: null, gameId: null,
       myScore: 0, opponentScore: 0, timer: 60, interval: null, fruitInterval: null,
@@ -345,7 +357,14 @@
     }
   };
 
-  // DOM элементы
+  const AVATARS = ['🐶','🐱','🐼','🐨','🦊','🐰','🐸','🐵','🐙','🦁','🐮','🐷'];
+  function getAvatar(id) {
+    if (!id) return '👤';
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) hash = (hash << 5) - hash + id.charCodeAt(i);
+    return AVATARS[Math.abs(hash) % AVATARS.length];
+  }
+
   const scoreDisplay = document.getElementById('scoreDisplay');
   const tapPowerDisplay = document.getElementById('tapPower');
   const passivePowerDisplay = document.getElementById('passivePower');
@@ -372,13 +391,6 @@
   const pvpField = document.getElementById('pvpField');
   const basket = document.getElementById('basket');
 
-  const friendsModal = document.getElementById('friendsModal');
-  const chatModal = document.getElementById('chatModal');
-  const allPlayersModal = document.getElementById('allPlayersModal');
-  const leaderboardModal = document.getElementById('leaderboardModal');
-  const leaguesModal = document.getElementById('leaguesModal');
-  const bankModal = document.getElementById('bankModal');
-
   function showToast(text, color = '#f9d423') {
     const toast = document.getElementById('toast');
     toast.textContent = text; toast.style.background = color;
@@ -387,7 +399,6 @@
     toast._timeout = setTimeout(() => toast.classList.remove('show'), 2500);
   }
 
-  // Лиги
   const leagues = [
     { name: 'Бронза', class: 'bronze', minEnergy: 0, minFire: 0, bonus: 0 },
     { name: 'Серебро', class: 'silver', minEnergy: 1000, minFire: 0, bonus: 2 },
@@ -428,7 +439,6 @@
     } else menuBattle.classList.add('hidden');
   }
 
-  // Загрузка данных с кредитным рейтингом и страховкой
   function loadInitialData(uid) {
     db.ref('players/' + uid).once('value').then(snapshot => {
       const data = snapshot.val();
@@ -448,6 +458,8 @@
         state.leagueBonuses = data.leagueBonuses || {};
         state.hasInsurance = data.hasInsurance || false;
         state.creditRating = data.creditRating || 0;
+        state.production = data.production || { active: false, endTime: 0, item: null };
+        state.inventory = data.inventory || [];
         if (data.friends) state.friends = Object.keys(data.friends);
       } else savePlayerData();
 
@@ -461,7 +473,6 @@
       checkLeagueUpgrade();
       updateFireDisplay();
 
-      // Реал-тайм слушатели баланса и огня
       db.ref('players/' + uid + '/energy').on('value', snap => {
         if (state.dataLoaded) { state.energy = snap.val() || 0; updateUI(); }
       });
@@ -471,11 +482,18 @@
       db.ref('players/' + uid + '/creditRating').on('value', snap => {
         if (state.dataLoaded) { state.creditRating = snap.val() || 0; }
       });
+      db.ref('players/' + uid + '/production').on('value', snap => {
+        if (state.dataLoaded) { state.production = snap.val() || { active: false, endTime: 0, item: null }; updateFactoryUI(); }
+      });
+      db.ref('players/' + uid + '/inventory').on('value', snap => {
+        if (state.dataLoaded) { state.inventory = snap.val() || []; updateInventoryUI(); }
+      });
 
       loadingScreen.style.opacity = '0';
       setTimeout(() => loadingScreen.classList.add('hidden'), 500);
       document.querySelector('.game-container').style.visibility = 'visible';
       state.dataLoaded = true;
+      if (state.production.active) scheduleProductionFinish();
     }).catch(err => {
       console.error(err);
       loadingScreen.classList.add('hidden');
@@ -493,11 +511,24 @@
       lastX2Used: state.lastX2Used, lastAutoTapUsed: state.lastAutoTapUsed,
       secretCodeUsed: state.secretCodeUsed, fire: state.fire,
       leagueBonuses: state.leagueBonuses, hasInsurance: state.hasInsurance,
-      creditRating: state.creditRating
+      creditRating: state.creditRating, production: state.production,
+      inventory: state.inventory
     });
   }
 
-  // Друзья (без изменений)
+  // Копирование ID
+  let idTapTimer = null;
+  playerIdDisplay.addEventListener('click', () => {
+    if (idTapTimer) { clearTimeout(idTapTimer); idTapTimer = null; navigator.clipboard.writeText(state.userId).then(() => showToast('ID скопирован!')); }
+    else idTapTimer = setTimeout(() => { idTapTimer = null; }, 400);
+  });
+  playerIdDisplay.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (idTapTimer) { clearTimeout(idTapTimer); idTapTimer = null; navigator.clipboard.writeText(state.userId).then(() => showToast('ID скопирован!')); }
+    else idTapTimer = setTimeout(() => { idTapTimer = null; }, 400);
+  });
+
+  // Друзья
   function listenToFriends(uid) {
     db.ref('players/' + uid + '/friends').on('value', snap => {
       state.friends = snap.val() ? Object.keys(snap.val()) : [];
@@ -520,18 +551,28 @@
     const fdat = await Promise.all(promises);
     let html = '';
     fdat.forEach(({id, data}) => {
+      const avatar = getAvatar(id);
       const nm = data ? `Игрок ${id.slice(0,6)}` : 'Неизвестный';
       const en = data ? Math.floor(data.energy) : 0;
       html += `<div style="margin:8px 0; background:#2d2d44; padding:10px; border-radius:15px; display:flex; justify-content:space-between;">
-        <span>👤 ${nm} (💎${en})</span>
+        <span><span class="avatar">${avatar}</span> ${nm} (💎${en})</span>
         <span>
           <button class="modal-btn send-coins-btn" data-friend="${id}">💰</button>
           <button class="modal-btn chat-btn" data-friend="${id}">💬</button>
+          <button class="modal-btn delete-friend-btn" data-friend="${id}">❌</button>
         </span></div>`;
     });
     listDiv.innerHTML = html;
     document.querySelectorAll('.send-coins-btn').forEach(b => b.addEventListener('click', () => sendCoinsToFriend(b.dataset.friend)));
     document.querySelectorAll('.chat-btn').forEach(b => b.addEventListener('click', () => openChatWithFriend(b.dataset.friend)));
+    document.querySelectorAll('.delete-friend-btn').forEach(b => b.addEventListener('click', () => deleteFriend(b.dataset.friend)));
+  }
+
+  function deleteFriend(friendId) {
+    if (!confirm('Удалить друга?')) return;
+    db.ref('players/' + state.userId + '/friends/' + friendId).remove();
+    db.ref('players/' + friendId + '/friends/' + state.userId).remove();
+    showToast('Друг удалён');
   }
 
   function renderRequestsList(reqs) {
@@ -612,7 +653,7 @@
     };
   }
 
-  // Табы друзей и модалки
+  // Табы друзей
   document.getElementById('friendsTabBtn').addEventListener('click', () => {
     document.getElementById('friendsTabContent').classList.remove('hidden');
     document.getElementById('requestsTabContent').classList.add('hidden');
@@ -629,7 +670,7 @@
   document.getElementById('closeFriendsBtn').addEventListener('click', () => friendsModal.classList.add('hidden'));
   document.getElementById('closeChatBtn').addEventListener('click', () => chatModal.classList.add('hidden'));
 
-  // Меню навигация
+  // Меню
   document.getElementById('menuFriends').addEventListener('click', () => {
     document.getElementById('menuModal').classList.add('hidden');
     friendsModal.classList.remove('hidden');
@@ -646,7 +687,7 @@
       Object.entries(data).forEach(([id, pd]) => {
         const en = Math.floor(pd.energy || 0);
         html += `<div style="margin:8px 0; background:#2d2d44; padding:10px; border-radius:15px; display:flex; justify-content:space-between;">
-          <span>👤 ID: ${id.slice(0,8)}... (💎${en})</span>
+          <span><span class="avatar">${getAvatar(id)}</span> ID: ${id.slice(0,8)}... (💎${en})</span>
           <button class="modal-btn add-friend-list-btn" data-id="${id}">➕</button></div>`;
       });
       listDiv.innerHTML = html;
@@ -673,7 +714,7 @@
       players.slice(0,10).forEach((p,i) => {
         const league = getLeagueForDisplay(p.energy||0, p.fire||0);
         html += `<div style="margin:8px 0; background:#2d2d44; padding:10px; border-radius:15px; display:flex; justify-content:space-between;">
-          <span>${i+1}. 👤 ${p.id.slice(0,6)}... <span class="league-badge ${league.class}">${league.name}</span></span>
+          <span>${i+1}. <span class="avatar">${getAvatar(p.id)}</span> ${p.id.slice(0,6)}... <span class="league-badge ${league.class}">${league.name}</span></span>
           <span>💎 ${Math.floor(p.energy||0)}</span></div>`;
       });
       listDiv.innerHTML = html;
@@ -878,12 +919,140 @@
     } else state.secretCodeProgress = 0;
   }
 
-  // PvP битва (без изменений)
-  document.getElementById('menuBattle').addEventListener('click', () => { /* ... */ });
-  // (полностью идентично предыдущей версии, опущено для краткости, но ОСТАВЛЯЙТЕ В СВОЁМ ФАЙЛЕ)
-  // ВАЖНО: вставьте сюда код битвы из предыдущего ответа, он не поменялся.
+  // PvP
+  document.getElementById('menuBattle').addEventListener('click', () => {
+    document.getElementById('menuModal').classList.add('hidden');
+    pvpModal.classList.remove('hidden');
+    pvpSearching.classList.remove('hidden');
+    pvpGameArea.classList.add('hidden');
+    state.pvp.searching = true; state.pvp.myScore = 0; state.pvp.opponentScore = 0; state.pvp.timer = 60;
+    document.getElementById('searchTimer').textContent = '0';
+    let searchTime = 0;
+    const searchInterval = setInterval(() => { searchTime++; document.getElementById('searchTimer').textContent = searchTime; }, 1000);
+    db.ref('pvpQueue/' + state.userId).set({ energy: state.energy, uid: state.userId, timestamp: Date.now() }).then(() => {
+      const listener = db.ref('pvpQueue').on('value', async snap => {
+        const queue = snap.val() || {};
+        const opponentId = Object.keys(queue).find(uid => uid !== state.userId && Math.abs((queue[uid].energy||0)-state.energy) <= state.energy*0.4);
+        if (opponentId) {
+          db.ref('pvpQueue').off('value', listener); clearInterval(searchInterval);
+          await db.ref('pvpQueue/' + state.userId).remove();
+          await db.ref('pvpQueue/' + opponentId).remove();
+          createPvpGame(opponentId, queue[opponentId].energy);
+        } else if (searchTime > 15) {
+          const anyOpponent = Object.keys(queue).find(uid => uid !== state.userId);
+          if (anyOpponent) {
+            db.ref('pvpQueue').off('value', listener); clearInterval(searchInterval);
+            await db.ref('pvpQueue/' + state.userId).remove();
+            await db.ref('pvpQueue/' + anyOpponent).remove();
+            createPvpGame(anyOpponent, queue[anyOpponent].energy);
+          }
+        }
+      });
+    });
+  });
 
-  // Банк – полностью переработан
+  function createPvpGame(opponentUid, oppEnergy) {
+    const gameId = db.ref('pvpGames').push().key;
+    state.pvp.opponentEnergy = oppEnergy || 0;
+    db.ref('pvpGames/' + gameId).set({
+      player1: state.userId, player2: opponentUid,
+      scores: { [state.userId]:0, [opponentUid]:0 },
+      startTime: Date.now(), status:'active', timer:60
+    });
+    startPvPGame(gameId, opponentUid);
+  }
+
+  function startPvPGame(gameId, opponentUid) {
+    state.pvp.gameId = gameId; state.pvp.opponent = opponentUid; state.pvp.active = true; state.pvp.searching = false;
+    pvpSearching.classList.add('hidden'); pvpGameArea.classList.remove('hidden');
+    myFruitScore.textContent = '0'; opponentFruitScore.textContent = '0'; pvpTimerDisplay.textContent = '60';
+    db.ref('pvpGames/' + gameId + '/scores').on('value', snap => {
+      const scores = snap.val() || {};
+      state.pvp.opponentScore = scores[opponentUid] || 0;
+      opponentFruitScore.textContent = state.pvp.opponentScore;
+    });
+    db.ref('pvpGames/' + gameId + '/status').on('value', snap => { if (snap.val() === 'finished') endPvPGame(); });
+    startFruitFall();
+    state.pvp.interval = setInterval(() => {
+      state.pvp.timer--;
+      pvpTimerDisplay.textContent = state.pvp.timer;
+      db.ref('pvpGames/' + gameId + '/timer').set(state.pvp.timer);
+      if (state.pvp.timer <= 0) { clearInterval(state.pvp.interval); finishPvpGame(); }
+    }, 1000);
+  }
+
+  function finishPvpGame() { if (state.pvp.gameId) db.ref('pvpGames/' + state.pvp.gameId + '/status').set('finished'); }
+
+  function endPvPGame() {
+    clearInterval(state.pvp.interval);
+    stopFruitFall();
+    const myScore = state.pvp.myScore, oppScore = state.pvp.opponentScore;
+    let fireDelta = 0;
+    if (myScore > oppScore) fireDelta = 15;
+    else if (myScore < oppScore) fireDelta = -10;
+    else fireDelta = 5;
+
+    if (state.hasInsurance && fireDelta < 0) {
+      fireDelta = Math.ceil(fireDelta / 2);
+      showToast('Страховка уменьшила потерю огня!', '#f9d423');
+      state.hasInsurance = false;
+      savePlayerData();
+    }
+
+    state.fire = Math.max(0, state.fire + fireDelta);
+    const message = myScore > oppScore ? `Победа! +15🔥` : (myScore < oppScore ? `Поражение ${fireDelta}🔥` : `Ничья +5🔥`);
+    showToast(`Битва окончена! ${message}`, '#f9d423');
+    savePlayerData(); updateUI();
+    db.ref('pvpGames/' + state.pvp.gameId).remove();
+    state.pvp.gameId = null; state.pvp.active = false;
+    pvpModal.classList.add('hidden');
+  }
+
+  function startFruitFall() {
+    basket.style.left = '50%';
+    pvpField.addEventListener('touchmove', moveBasket); pvpField.addEventListener('mousemove', moveBasket);
+    state.pvp.fruitInterval = setInterval(() => { if (state.pvp.active) createFruit(); }, 800);
+  }
+  function stopFruitFall() {
+    clearInterval(state.pvp.fruitInterval);
+    pvpField.removeEventListener('touchmove', moveBasket); pvpField.removeEventListener('mousemove', moveBasket);
+    document.querySelectorAll('.fruit').forEach(f => f.remove());
+  }
+  function moveBasket(e) {
+    e.preventDefault();
+    const rect = pvpField.getBoundingClientRect();
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    basket.style.left = Math.max(0, Math.min(100, (x / rect.width) * 100)) + '%';
+  }
+  function createFruit() {
+    if (!state.pvp.active) return;
+    const fruit = document.createElement('div'); fruit.className='fruit';
+    fruit.textContent = ['🍎','🍌','🍇','🍊','🍓'][Math.floor(Math.random()*5)];
+    fruit.style.left = Math.random()*90 + '%'; fruit.style.top = '-40px';
+    pvpField.appendChild(fruit);
+    let fallSpeed = 2 + Math.random()*2;
+    const fallInterval = setInterval(() => {
+      if (!state.pvp.active) { clearInterval(fallInterval); fruit.remove(); return; }
+      const top = parseFloat(fruit.style.top) + fallSpeed;
+      fruit.style.top = top + 'px';
+      if (top > 280) { clearInterval(fallInterval); fruit.remove(); }
+      const br = basket.getBoundingClientRect(), fr = fruit.getBoundingClientRect();
+      if (fr.bottom >= br.top && fr.top <= br.bottom && fr.right >= br.left && fr.left <= br.right) {
+        state.pvp.myScore++; myFruitScore.textContent = state.pvp.myScore;
+        db.ref('pvpGames/' + state.pvp.gameId + '/scores/' + state.userId).set(state.pvp.myScore);
+        clearInterval(fallInterval); fruit.remove();
+      }
+    }, 20);
+  }
+
+  document.getElementById('cancelPvP').addEventListener('click', () => {
+    if (state.pvp.searching) db.ref('pvpQueue/' + state.userId).remove();
+    if (state.pvp.gameId) { db.ref('pvpGames/' + state.pvp.gameId).remove(); stopFruitFall(); clearInterval(state.pvp.interval); }
+    pvpModal.classList.add('hidden');
+    state.pvp.searching = false; state.pvp.active = false;
+  });
+
+  // Банк, фабрика, страховка
   document.getElementById('menuBank').addEventListener('click', () => {
     document.getElementById('menuModal').classList.add('hidden');
     bankModal.classList.remove('hidden');
@@ -893,32 +1062,49 @@
   });
   document.getElementById('closeBankBtn').addEventListener('click', () => bankModal.classList.add('hidden'));
 
-  // Вкладки банка
   document.getElementById('investTabBtn').addEventListener('click', () => {
     document.getElementById('investTabContent').classList.remove('hidden');
     document.getElementById('myDealsTabContent').classList.add('hidden');
+    document.getElementById('factoryTabContent').classList.add('hidden');
     document.getElementById('insuranceTabContent').classList.add('hidden');
     document.getElementById('investTabBtn').classList.add('active');
     document.getElementById('myDealsTabBtn').classList.remove('active');
+    document.getElementById('factoryTabBtn').classList.remove('active');
     document.getElementById('insuranceTabBtn').classList.remove('active');
     loadInvestments();
   });
   document.getElementById('myDealsTabBtn').addEventListener('click', () => {
     document.getElementById('investTabContent').classList.add('hidden');
     document.getElementById('myDealsTabContent').classList.remove('hidden');
+    document.getElementById('factoryTabContent').classList.add('hidden');
     document.getElementById('insuranceTabContent').classList.add('hidden');
     document.getElementById('myDealsTabBtn').classList.add('active');
     document.getElementById('investTabBtn').classList.remove('active');
+    document.getElementById('factoryTabBtn').classList.remove('active');
     document.getElementById('insuranceTabBtn').classList.remove('active');
     loadMyDeals();
+  });
+  document.getElementById('factoryTabBtn').addEventListener('click', () => {
+    document.getElementById('investTabContent').classList.add('hidden');
+    document.getElementById('myDealsTabContent').classList.add('hidden');
+    document.getElementById('factoryTabContent').classList.remove('hidden');
+    document.getElementById('insuranceTabContent').classList.add('hidden');
+    document.getElementById('factoryTabBtn').classList.add('active');
+    document.getElementById('investTabBtn').classList.remove('active');
+    document.getElementById('myDealsTabBtn').classList.remove('active');
+    document.getElementById('insuranceTabBtn').classList.remove('active');
+    updateFactoryUI();
+    updateInventoryUI();
   });
   document.getElementById('insuranceTabBtn').addEventListener('click', () => {
     document.getElementById('investTabContent').classList.add('hidden');
     document.getElementById('myDealsTabContent').classList.add('hidden');
+    document.getElementById('factoryTabContent').classList.add('hidden');
     document.getElementById('insuranceTabContent').classList.remove('hidden');
     document.getElementById('insuranceTabBtn').classList.add('active');
     document.getElementById('investTabBtn').classList.remove('active');
     document.getElementById('myDealsTabBtn').classList.remove('active');
+    document.getElementById('factoryTabBtn').classList.remove('active');
   });
 
   // Страховка
@@ -926,10 +1112,9 @@
     document.getElementById('insuranceStatus').textContent = state.hasInsurance ? '✅ Активна' : 'Нет активной страховки';
   }
   document.getElementById('buyInsuranceBtn').addEventListener('click', () => {
-    const cost = 2000;
-    if (state.energy < cost) { showToast('Недостаточно монет'); return; }
+    if (state.energy < 2000) { showToast('Недостаточно монет'); return; }
     if (state.hasInsurance) { showToast('Уже есть страховка'); return; }
-    state.energy -= cost;
+    state.energy -= 2000;
     state.hasInsurance = true;
     savePlayerData();
     updateUI();
@@ -937,7 +1122,7 @@
     showToast('Страховка куплена!');
   });
 
-  // Инвестиции – создание (без баланса)
+  // Инвестиции
   document.getElementById('createInvestBtn').addEventListener('click', () => {
     const amount = parseInt(document.getElementById('investAmount').value);
     const percent = parseFloat(document.getElementById('investPercent').value);
@@ -945,22 +1130,14 @@
     if (!amount || !percent || !duration || amount <= 0 || percent <= 0 || duration <= 0) {
       showToast('Заполните все поля'); return;
     }
-    // Проверяем, нет ли уже активной сделки у этого пользователя
     db.ref('investments').orderByChild('creator').equalTo(state.userId).once('value').then(snap => {
       const exists = Object.values(snap.val() || {}).some(inv => inv.status === 'active' || inv.status === 'invested');
       if (exists) { showToast('У вас уже есть активная сделка'); return; }
-
       const endTime = Date.now() + duration * 60000;
       const invRef = db.ref('investments').push();
       invRef.set({
-        creator: state.userId,
-        amount: amount,
-        percent: percent,
-        endTime: endTime,
-        status: 'active',
-        investor: null,
-        investedAmount: 0,
-        createdAt: Date.now()
+        creator: state.userId, amount: amount, percent: percent,
+        endTime: endTime, status: 'active', investor: null, investedAmount: 0, createdAt: Date.now()
       }).then(() => {
         document.getElementById('investAmount').value = '';
         document.getElementById('investPercent').value = '';
@@ -978,8 +1155,7 @@
       const listDiv = document.getElementById('investList');
       let html = '';
       Object.entries(data).forEach(([id, inv]) => {
-        if (inv.status === 'active') {
-          // Показываем рейтинг создателя
+        if (inv.status === 'active' && inv.creator !== state.userId) {
           db.ref('players/' + inv.creator + '/creditRating').once('value').then(ratingSnap => {
             const rating = ratingSnap.val() || 0;
             html += `<div class="deal-item">
@@ -989,38 +1165,27 @@
               <button class="modal-btn invest-btn" data-id="${id}">Вложить</button>
             </div>`;
             listDiv.innerHTML = html;
-            document.querySelectorAll('.invest-btn').forEach(b => {
-              b.addEventListener('click', () => investInProject(b.dataset.id));
-            });
+            document.querySelectorAll('.invest-btn').forEach(b => b.addEventListener('click', () => investInProject(b.dataset.id)));
           });
         }
       });
-      if (html === '') listDiv.innerHTML = '<p style="color:#aaa">Нет активных предложений</p>';
+      if (html === '') listDiv.innerHTML = '<p style="color:#aaa">Нет доступных предложений</p>';
     });
   }
 
   function investInProject(invId) {
     db.ref('investments/' + invId).once('value').then(snap => {
       const inv = snap.val();
-      if (!inv || inv.status !== 'active') { showToast('Недоступно'); return; }
-      if (inv.creator === state.userId) { showToast('Нельзя вложить в свою заявку'); return; }
-      const amount = inv.amount;
-      if (state.energy < amount) { showToast('Недостаточно монет'); return; }
-      state.energy -= amount;
-      db.ref('players/' + inv.creator + '/energy').transaction(e => (e || 0) + amount);
-      db.ref('investments/' + invId).update({
-        investor: state.userId,
-        investedAmount: amount,
-        status: 'invested'
-      });
-      savePlayerData();
-      updateUI();
-      loadInvestments();
-      showToast(`Вы вложили ${amount}💎`);
+      if (!inv || inv.status !== 'active' || inv.creator === state.userId) { showToast('Недоступно'); return; }
+      if (state.energy < inv.amount) { showToast('Недостаточно монет'); return; }
+      state.energy -= inv.amount;
+      db.ref('players/' + inv.creator + '/energy').transaction(e => (e || 0) + inv.amount);
+      db.ref('investments/' + invId).update({ investor: state.userId, investedAmount: inv.amount, status: 'invested' });
+      savePlayerData(); updateUI(); loadInvestments();
+      showToast(`Вы вложили ${inv.amount}💎`);
     });
   }
 
-  // Мои сделки
   function loadMyDeals() {
     db.ref('investments').once('value').then(snap => {
       const data = snap.val() || {};
@@ -1028,7 +1193,6 @@
       const listDiv = document.getElementById('myDealsList');
       let html = '';
       Object.entries(data).forEach(([id, inv]) => {
-        // Я заёмщик (создатель)
         if (inv.creator === state.userId && (inv.status === 'active' || inv.status === 'invested' || inv.status === 'defaulted')) {
           const totalReturn = Math.floor(inv.amount * (1 + inv.percent / 100));
           const timeLeft = Math.max(0, Math.ceil((inv.endTime - now) / 60000));
@@ -1040,7 +1204,6 @@
             ${inv.status === 'defaulted' ? '<p style="color:red;">Просрочено! Штраф -40 к рейтингу</p>' : ''}
           </div>`;
         }
-        // Я инвестор
         if (inv.investor === state.userId && (inv.status === 'invested' || inv.status === 'completed' || inv.status === 'defaulted')) {
           const totalReturn = Math.floor(inv.amount * (1 + inv.percent / 100));
           html += `<div class="deal-item">
@@ -1051,9 +1214,7 @@
         }
       });
       listDiv.innerHTML = html || '<p style="color:#aaa">Нет активных сделок</p>';
-      document.querySelectorAll('.repay-btn').forEach(b => {
-        b.addEventListener('click', () => repayDeal(b.dataset.id));
-      });
+      document.querySelectorAll('.repay-btn').forEach(b => b.addEventListener('click', () => repayDeal(b.dataset.id)));
     });
   }
 
@@ -1066,33 +1227,100 @@
       state.energy -= totalReturn;
       db.ref('players/' + inv.investor + '/energy').transaction(e => (e || 0) + totalReturn);
       db.ref('investments/' + invId).update({ status: 'completed' });
-      // Повышаем рейтинг за своевременный возврат
       state.creditRating += 25;
-      savePlayerData();
-      updateUI();
-      loadMyDeals();
+      savePlayerData(); updateUI(); loadMyDeals();
       showToast(`Долг погашен! Рейтинг +25`);
     });
   }
 
-  // Проверка просрочек
   function checkOverdueDeals() {
     db.ref('investments').once('value').then(snap => {
       const data = snap.val() || {};
       const now = Date.now();
-      const updates = {};
       Object.entries(data).forEach(([id, inv]) => {
         if (inv.status === 'invested' && inv.endTime < now) {
-          updates[id + '/status'] = 'defaulted';
-          // Штраф рейтинга создателю
+          db.ref('investments/' + id + '/status').set('defaulted');
           db.ref('players/' + inv.creator + '/creditRating').transaction(r => (r || 0) - 40);
         }
       });
-      if (Object.keys(updates).length > 0) {
-        db.ref('investments').update(updates);
-        showToast('Некоторые сделки просрочены! Рейтинг заёмщиков снижен.');
-      }
     });
+  }
+
+  // Фабрика
+  function updateFactoryUI() {
+    const statusP = document.getElementById('productionStatus');
+    if (state.production.active) {
+      const remaining = Math.max(0, Math.ceil((state.production.endTime - Date.now()) / 1000));
+      statusP.textContent = `Производство идёт: ${formatTime(remaining)} до завершения`;
+    } else if (state.production.item) {
+      statusP.textContent = `Готово: ${state.production.item}. Заберите в инвентаре!`;
+    } else {
+      statusP.textContent = 'Нет активного производства';
+    }
+  }
+
+  function updateInventoryUI() {
+    const listDiv = document.getElementById('inventoryList');
+    if (!state.inventory.length) { listDiv.innerHTML = '<p style="color:#aaa">Инвентарь пуст</p>'; return; }
+    let html = '';
+    state.inventory.forEach((item, index) => {
+      html += `<div class="deal-item"><p>${item} <button class="modal-btn use-item-btn" data-index="${index}">Использовать</button> <button class="modal-btn sell-item-btn" data-index="${index}">Продать (1000💎)</button></p></div>`;
+    });
+    listDiv.innerHTML = html;
+    document.querySelectorAll('.use-item-btn').forEach(b => b.addEventListener('click', () => useItem(parseInt(b.dataset.index))));
+    document.querySelectorAll('.sell-item-btn').forEach(b => b.addEventListener('click', () => sellItem(parseInt(b.dataset.index))));
+  }
+
+  document.getElementById('startProductionBtn').addEventListener('click', () => {
+    if (state.production.active || state.production.item) { showToast('Уже есть активное производство'); return; }
+    if (state.energy < 2000) { showToast('Недостаточно монет'); return; }
+    state.energy -= 2000;
+    const items = ['Кристалл x2', 'Батарейка', 'Огненный шар'];
+    const item = items[Math.floor(Math.random() * items.length)];
+    const endTime = Date.now() + 30 * 60000;
+    state.production = { active: true, endTime: endTime, item: item };
+    savePlayerData();
+    updateUI();
+    updateFactoryUI();
+    scheduleProductionFinish();
+  });
+
+  function scheduleProductionFinish() {
+    const remaining = state.production.endTime - Date.now();
+    if (remaining > 0) setTimeout(() => finishProduction(), remaining);
+  }
+
+  function finishProduction() {
+    if (!state.production.active) return;
+    state.production.active = false;
+    state.inventory.push(state.production.item);
+    state.production.item = null;
+    savePlayerData();
+    updateFactoryUI();
+    updateInventoryUI();
+    showToast('Производство завершено! Предмет в инвентаре.');
+  }
+
+  function useItem(index) {
+    const item = state.inventory[index];
+    if (!item) return;
+    if (item === 'Кристалл x2') activateBoost('x2');
+    else if (item === 'Батарейка') activateBoost('autoTap');
+    else if (item === 'Огненный шар') { state.fire += 5; showToast('Получено +5🔥'); }
+    state.inventory.splice(index, 1);
+    savePlayerData();
+    updateUI();
+    updateInventoryUI();
+  }
+
+  function sellItem(index) {
+    if (!state.inventory[index]) return;
+    state.energy += 1000;
+    state.inventory.splice(index, 1);
+    savePlayerData();
+    updateUI();
+    updateInventoryUI();
+    showToast('Предмет продан за 1000 💎');
   }
 
   // Меню и основные обработчики
