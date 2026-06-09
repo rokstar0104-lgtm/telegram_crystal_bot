@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, shrink-to-fit=no">
-  <title>Crystal Tap – Банк, Фабрика и Битвы</title>
+  <title>Crystal Tap – Фабрика и Рынок</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
@@ -112,7 +112,7 @@
       border:none; border-radius:25px; padding:14px; color:black;
       font-weight:bold; font-size:1.2rem; cursor:pointer; margin-top:10px;
     }
-    .menu-grid { display:grid; grid-template-columns: repeat(2,1fr); gap:10px; margin-top:15px; }
+    .menu-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:15px; }
     .menu-item { background:rgba(0,0,0,0.5); border-radius:20px; padding:15px; text-align:center; cursor:pointer; border:2px solid transparent; font-weight:bold; backdrop-filter:blur(5px); }
     .menu-item:active { background:#3a3a5a; }
 
@@ -155,6 +155,7 @@
     .deal-item { background:#2d2d44; padding:10px; border-radius:10px; margin:8px 0; }
     .deal-item p { margin:5px 0; }
     .avatar { margin-right:5px; }
+    .production-timer { font-weight:bold; color:#f9d423; }
   </style>
 </head>
 <body>
@@ -198,6 +199,8 @@
       <div class="menu-item" id="menuLeagues">🏅 Лиги</div>
       <div class="menu-item hidden" id="menuBattle">⚔️ Битва</div>
       <div class="menu-item" id="menuBank">🏦 Банк</div>
+      <div class="menu-item" id="menuFactory">🏭 Фабрика</div>
+      <div class="menu-item" id="menuMarket">🏪 Рынок</div>
     </div>
     <button class="modal-btn" id="closeMenuBtn">Закрыть</button>
   </div>
@@ -281,7 +284,6 @@
     <div class="tabs">
       <button class="tab-btn active" id="investTabBtn">Инвестиции</button>
       <button class="tab-btn" id="myDealsTabBtn">Мои сделки</button>
-      <button class="tab-btn" id="factoryTabBtn">Фабрика</button>
       <button class="tab-btn" id="insuranceTabBtn">Страховка</button>
     </div>
     <div id="investTabContent">
@@ -297,14 +299,6 @@
       <h4>Мои активные сделки</h4>
       <div id="myDealsList"></div>
     </div>
-    <div id="factoryTabContent" class="hidden">
-      <h4>🏭 Фабрика предметов</h4>
-      <p>Производство занимает 30 минут. Стоимость запуска: 2000 💎.</p>
-      <button class="modal-btn" id="startProductionBtn">Запустить производство</button>
-      <p id="productionStatus" style="margin-top:10px;">Нет активного производства</p>
-      <h4 style="margin-top:15px;">Инвентарь</h4>
-      <div id="inventoryList"></div>
-    </div>
     <div id="insuranceTabContent" class="hidden">
       <p>Страховка снизит потерю 🔥 при поражении на 50%.</p>
       <p>Стоимость: 2000 💎</p>
@@ -312,6 +306,56 @@
       <p id="insuranceStatus" style="margin-top:10px;">Нет активной страховки</p>
     </div>
     <button class="modal-btn" id="closeBankBtn" style="margin-top:10px;">Закрыть</button>
+  </div>
+</div>
+
+<div id="factoryModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>🏭 Фабрика</h3>
+    <div class="tabs">
+      <button class="tab-btn active" id="craftTabBtn">Крафт</button>
+      <button class="tab-btn" id="componentsTabBtn">Производство</button>
+      <button class="tab-btn" id="inventoryTabBtn">Инвентарь</button>
+    </div>
+    <div id="craftTabContent">
+      <h4>Выберите рецепт</h4>
+      <div id="recipesList"></div>
+    </div>
+    <div id="componentsTabContent" class="hidden">
+      <h4>Производство компонентов</h4>
+      <div id="componentsList"></div>
+      <p id="productionStatus" style="margin-top:10px;">Нет активного производства</p>
+    </div>
+    <div id="inventoryTabContent" class="hidden">
+      <h4>Ваши ресурсы</h4>
+      <div id="inventoryItems"></div>
+    </div>
+    <button class="modal-btn" id="closeFactoryBtn" style="margin-top:10px;">Закрыть</button>
+  </div>
+</div>
+
+<div id="marketModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>🏪 Рынок</h3>
+    <div class="tabs">
+      <button class="tab-btn active" id="marketBuyTabBtn">Покупка</button>
+      <button class="tab-btn" id="marketSellTabBtn">Продажа</button>
+      <button class="tab-btn" id="marketMyListingsTabBtn">Мои лоты</button>
+    </div>
+    <div id="marketBuyTabContent">
+      <div id="marketListings"></div>
+    </div>
+    <div id="marketSellTabContent" class="hidden">
+      <h4>Выставить предмет</h4>
+      <select class="modal-input" id="sellItemSelect"></select>
+      <input type="number" class="modal-input" id="sellPrice" placeholder="Цена (💎)">
+      <label><input type="checkbox" id="isAuctionCheckbox"> Аукцион</label>
+      <button class="modal-btn" id="createListingBtn">Выставить</button>
+    </div>
+    <div id="marketMyListingsTabContent" class="hidden">
+      <div id="myListingsList"></div>
+    </div>
+    <button class="modal-btn" id="closeMarketBtn" style="margin-top:10px;">Закрыть</button>
   </div>
 </div>
 
@@ -348,13 +392,43 @@
     secretCodeProgress: 0, secretCodeUsed: false,
     fire: 0, leagueBonuses: {},
     hasInsurance: false, creditRating: 0,
-    production: { active: false, endTime: 0, item: null },
-    inventory: [],
+    production: { active: false, endTime: 0, componentId: null },
+    inventoryComponents: {},
+    inventoryItems: [],
     pvp: {
       active: false, searching: false, opponent: null, gameId: null,
       myScore: 0, opponentScore: 0, timer: 60, interval: null, fruitInterval: null,
       opponentEnergy: 0
     }
+  };
+
+  const recipes = [
+    {
+      id: 'boost_x2',
+      name: 'Кристалл x2',
+      description: 'Активирует буст x2 на 60 сек',
+      components: { iron_ingot: 2, magic_dust: 1 },
+      result: { type: 'boost', effect: 'x2' }
+    },
+    {
+      id: 'boost_autotap',
+      name: 'Батарейка',
+      description: 'Активирует авто-тап на 60 сек',
+      components: { iron_ingot: 3, magic_dust: 2 },
+      result: { type: 'boost', effect: 'autoTap' }
+    },
+    {
+      id: 'fire_bonus',
+      name: 'Огненный шар',
+      description: 'Даёт +5 🔥',
+      components: { magic_dust: 4, iron_ingot: 1 },
+      result: { type: 'fire', amount: 5 }
+    }
+  ];
+
+  const components = {
+    iron_ingot: { name: 'Железный слиток', productionTime: 2 * 60000 },
+    magic_dust: { name: 'Магический порошок', productionTime: 3 * 60000 }
   };
 
   const AVATARS = ['🐶','🐱','🐼','🐨','🦊','🐰','🐸','🐵','🐙','🦁','🐮','🐷'];
@@ -458,8 +532,9 @@
         state.leagueBonuses = data.leagueBonuses || {};
         state.hasInsurance = data.hasInsurance || false;
         state.creditRating = data.creditRating || 0;
-        state.production = data.production || { active: false, endTime: 0, item: null };
-        state.inventory = data.inventory || [];
+        state.production = data.production || { active: false, endTime: 0, componentId: null };
+        state.inventoryComponents = data.inventoryComponents || {};
+        state.inventoryItems = data.inventoryItems || [];
         if (data.friends) state.friends = Object.keys(data.friends);
       } else savePlayerData();
 
@@ -473,20 +548,21 @@
       checkLeagueUpgrade();
       updateFireDisplay();
 
-      db.ref('players/' + uid + '/energy').on('value', snap => {
-        if (state.dataLoaded) { state.energy = snap.val() || 0; updateUI(); }
-      });
-      db.ref('players/' + uid + '/fire').on('value', snap => {
-        if (state.dataLoaded) { state.fire = snap.val() || 0; updateFireDisplay(); updateUI(); }
-      });
-      db.ref('players/' + uid + '/creditRating').on('value', snap => {
-        if (state.dataLoaded) { state.creditRating = snap.val() || 0; }
-      });
+      db.ref('players/' + uid + '/energy').on('value', snap => { if (state.dataLoaded) { state.energy = snap.val() || 0; updateUI(); } });
+      db.ref('players/' + uid + '/fire').on('value', snap => { if (state.dataLoaded) { state.fire = snap.val() || 0; updateFireDisplay(); updateUI(); } });
+      db.ref('players/' + uid + '/creditRating').on('value', snap => { if (state.dataLoaded) { state.creditRating = snap.val() || 0; } });
       db.ref('players/' + uid + '/production').on('value', snap => {
-        if (state.dataLoaded) { state.production = snap.val() || { active: false, endTime: 0, item: null }; updateFactoryUI(); }
+        if (state.dataLoaded) {
+          state.production = snap.val() || { active: false, endTime: 0, componentId: null };
+          updateProductionUI();
+          if (state.production.active) scheduleProductionFinish();
+        }
       });
-      db.ref('players/' + uid + '/inventory').on('value', snap => {
-        if (state.dataLoaded) { state.inventory = snap.val() || []; updateInventoryUI(); }
+      db.ref('players/' + uid + '/inventoryComponents').on('value', snap => {
+        if (state.dataLoaded) { state.inventoryComponents = snap.val() || {}; updateInventoryUI(); }
+      });
+      db.ref('players/' + uid + '/inventoryItems').on('value', snap => {
+        if (state.dataLoaded) { state.inventoryItems = snap.val() || []; updateInventoryUI(); }
       });
 
       loadingScreen.style.opacity = '0';
@@ -494,6 +570,7 @@
       document.querySelector('.game-container').style.visibility = 'visible';
       state.dataLoaded = true;
       if (state.production.active) scheduleProductionFinish();
+      setInterval(updateProductionUI, 1000); // обновляем таймер каждую секунду
     }).catch(err => {
       console.error(err);
       loadingScreen.classList.add('hidden');
@@ -512,7 +589,8 @@
       secretCodeUsed: state.secretCodeUsed, fire: state.fire,
       leagueBonuses: state.leagueBonuses, hasInsurance: state.hasInsurance,
       creditRating: state.creditRating, production: state.production,
-      inventory: state.inventory
+      inventoryComponents: state.inventoryComponents,
+      inventoryItems: state.inventoryItems
     });
   }
 
@@ -653,7 +731,6 @@
     };
   }
 
-  // Табы друзей
   document.getElementById('friendsTabBtn').addEventListener('click', () => {
     document.getElementById('friendsTabContent').classList.remove('hidden');
     document.getElementById('requestsTabContent').classList.add('hidden');
@@ -884,7 +961,7 @@
     updateFireDisplay();
   }
 
-  // Секретный код
+  // Секретный код (без изменений)
   const SECRET = ['-','.','-','-','.'];
   let gestureStart = null;
   function setupSecretCode() {
@@ -919,7 +996,7 @@
     } else state.secretCodeProgress = 0;
   }
 
-  // PvP
+  // PvP (без изменений)
   document.getElementById('menuBattle').addEventListener('click', () => {
     document.getElementById('menuModal').classList.add('hidden');
     pvpModal.classList.remove('hidden');
@@ -1052,7 +1129,7 @@
     state.pvp.searching = false; state.pvp.active = false;
   });
 
-  // Банк, фабрика, страховка
+  // Банк (без фабрики)
   document.getElementById('menuBank').addEventListener('click', () => {
     document.getElementById('menuModal').classList.add('hidden');
     bankModal.classList.remove('hidden');
@@ -1065,49 +1142,30 @@
   document.getElementById('investTabBtn').addEventListener('click', () => {
     document.getElementById('investTabContent').classList.remove('hidden');
     document.getElementById('myDealsTabContent').classList.add('hidden');
-    document.getElementById('factoryTabContent').classList.add('hidden');
     document.getElementById('insuranceTabContent').classList.add('hidden');
     document.getElementById('investTabBtn').classList.add('active');
     document.getElementById('myDealsTabBtn').classList.remove('active');
-    document.getElementById('factoryTabBtn').classList.remove('active');
     document.getElementById('insuranceTabBtn').classList.remove('active');
     loadInvestments();
   });
   document.getElementById('myDealsTabBtn').addEventListener('click', () => {
     document.getElementById('investTabContent').classList.add('hidden');
     document.getElementById('myDealsTabContent').classList.remove('hidden');
-    document.getElementById('factoryTabContent').classList.add('hidden');
     document.getElementById('insuranceTabContent').classList.add('hidden');
     document.getElementById('myDealsTabBtn').classList.add('active');
     document.getElementById('investTabBtn').classList.remove('active');
-    document.getElementById('factoryTabBtn').classList.remove('active');
     document.getElementById('insuranceTabBtn').classList.remove('active');
     loadMyDeals();
-  });
-  document.getElementById('factoryTabBtn').addEventListener('click', () => {
-    document.getElementById('investTabContent').classList.add('hidden');
-    document.getElementById('myDealsTabContent').classList.add('hidden');
-    document.getElementById('factoryTabContent').classList.remove('hidden');
-    document.getElementById('insuranceTabContent').classList.add('hidden');
-    document.getElementById('factoryTabBtn').classList.add('active');
-    document.getElementById('investTabBtn').classList.remove('active');
-    document.getElementById('myDealsTabBtn').classList.remove('active');
-    document.getElementById('insuranceTabBtn').classList.remove('active');
-    updateFactoryUI();
-    updateInventoryUI();
   });
   document.getElementById('insuranceTabBtn').addEventListener('click', () => {
     document.getElementById('investTabContent').classList.add('hidden');
     document.getElementById('myDealsTabContent').classList.add('hidden');
-    document.getElementById('factoryTabContent').classList.add('hidden');
     document.getElementById('insuranceTabContent').classList.remove('hidden');
     document.getElementById('insuranceTabBtn').classList.add('active');
     document.getElementById('investTabBtn').classList.remove('active');
     document.getElementById('myDealsTabBtn').classList.remove('active');
-    document.getElementById('factoryTabBtn').classList.remove('active');
   });
 
-  // Страховка
   function updateInsuranceStatus() {
     document.getElementById('insuranceStatus').textContent = state.hasInsurance ? '✅ Активна' : 'Нет активной страховки';
   }
@@ -1122,23 +1180,18 @@
     showToast('Страховка куплена!');
   });
 
-  // Инвестиции
+  // Инвестиции (как прежде)
   document.getElementById('createInvestBtn').addEventListener('click', () => {
     const amount = parseInt(document.getElementById('investAmount').value);
     const percent = parseFloat(document.getElementById('investPercent').value);
     const duration = parseInt(document.getElementById('investDuration').value);
-    if (!amount || !percent || !duration || amount <= 0 || percent <= 0 || duration <= 0) {
-      showToast('Заполните все поля'); return;
-    }
+    if (!amount || !percent || !duration || amount <= 0 || percent <= 0 || duration <= 0) { showToast('Заполните все поля'); return; }
     db.ref('investments').orderByChild('creator').equalTo(state.userId).once('value').then(snap => {
       const exists = Object.values(snap.val() || {}).some(inv => inv.status === 'active' || inv.status === 'invested');
       if (exists) { showToast('У вас уже есть активная сделка'); return; }
       const endTime = Date.now() + duration * 60000;
       const invRef = db.ref('investments').push();
-      invRef.set({
-        creator: state.userId, amount: amount, percent: percent,
-        endTime: endTime, status: 'active', investor: null, investedAmount: 0, createdAt: Date.now()
-      }).then(() => {
+      invRef.set({ creator: state.userId, amount, percent, endTime, status: 'active', investor: null, investedAmount: 0, createdAt: Date.now() }).then(() => {
         document.getElementById('investAmount').value = '';
         document.getElementById('investPercent').value = '';
         document.getElementById('investDuration').value = '';
@@ -1247,80 +1300,308 @@
   }
 
   // Фабрика
-  function updateFactoryUI() {
+  document.getElementById('menuFactory').addEventListener('click', () => {
+    document.getElementById('menuModal').classList.add('hidden');
+    factoryModal.classList.remove('hidden');
+    document.getElementById('craftTabBtn').click();
+  });
+  const factoryModal = document.getElementById('factoryModal');
+  document.getElementById('closeFactoryBtn').addEventListener('click', () => factoryModal.classList.add('hidden'));
+
+  document.getElementById('craftTabBtn').addEventListener('click', () => {
+    document.getElementById('craftTabContent').classList.remove('hidden');
+    document.getElementById('componentsTabContent').classList.add('hidden');
+    document.getElementById('inventoryTabContent').classList.add('hidden');
+    document.getElementById('craftTabBtn').classList.add('active');
+    document.getElementById('componentsTabBtn').classList.remove('active');
+    document.getElementById('inventoryTabBtn').classList.remove('active');
+    loadRecipes();
+  });
+  document.getElementById('componentsTabBtn').addEventListener('click', () => {
+    document.getElementById('craftTabContent').classList.add('hidden');
+    document.getElementById('componentsTabContent').classList.remove('hidden');
+    document.getElementById('inventoryTabContent').classList.add('hidden');
+    document.getElementById('componentsTabBtn').classList.add('active');
+    document.getElementById('craftTabBtn').classList.remove('active');
+    document.getElementById('inventoryTabBtn').classList.remove('active');
+    loadComponents();
+    updateProductionUI();
+  });
+  document.getElementById('inventoryTabBtn').addEventListener('click', () => {
+    document.getElementById('craftTabContent').classList.add('hidden');
+    document.getElementById('componentsTabContent').classList.add('hidden');
+    document.getElementById('inventoryTabContent').classList.remove('hidden');
+    document.getElementById('inventoryTabBtn').classList.add('active');
+    document.getElementById('craftTabBtn').classList.remove('active');
+    document.getElementById('componentsTabBtn').classList.remove('active');
+    updateInventoryUI();
+  });
+
+  function loadRecipes() {
+    const listDiv = document.getElementById('recipesList');
+    let html = '';
+    recipes.forEach(recipe => {
+      const canCraft = Object.entries(recipe.components).every(([compId, qty]) => (state.inventoryComponents[compId] || 0) >= qty);
+      html += `<div class="deal-item">
+        <p><b>${recipe.name}</b> – ${recipe.description}</p>
+        <p>Нужно: ${Object.entries(recipe.components).map(([cid, qty]) => `${qty}x ${components[cid].name}`).join(', ')}</p>
+        <button class="modal-btn craft-btn" data-id="${recipe.id}" ${canCraft ? '' : 'disabled'}>Скрафтить</button>
+      </div>`;
+    });
+    listDiv.innerHTML = html || '<p style="color:#aaa">Нет рецептов</p>';
+    document.querySelectorAll('.craft-btn').forEach(b => b.addEventListener('click', () => craftRecipe(b.dataset.id)));
+  }
+
+  function craftRecipe(recipeId) {
+    const recipe = recipes.find(r => r.id === recipeId);
+    if (!recipe) return;
+    const canCraft = Object.entries(recipe.components).every(([compId, qty]) => (state.inventoryComponents[compId] || 0) >= qty);
+    if (!canCraft) { showToast('Недостаточно компонентов'); return; }
+    Object.entries(recipe.components).forEach(([compId, qty]) => { state.inventoryComponents[compId] -= qty; });
+    state.inventoryItems.push({ id: Date.now().toString(), type: recipe.result.type, effect: recipe.result.effect || null, amount: recipe.result.amount || 0, name: recipe.name });
+    savePlayerData();
+    updateInventoryUI();
+    loadRecipes();
+    showToast(`${recipe.name} скрафчен!`);
+  }
+
+  function loadComponents() {
+    const listDiv = document.getElementById('componentsList');
+    let html = '';
+    Object.entries(components).forEach(([id, comp]) => {
+      html += `<div class="deal-item">
+        <p><b>${comp.name}</b> – время: ${Math.floor(comp.productionTime/60000)} мин</p>
+        <button class="modal-btn produce-btn" data-id="${id}">Произвести</button>
+      </div>`;
+    });
+    listDiv.innerHTML = html;
+    document.querySelectorAll('.produce-btn').forEach(b => b.addEventListener('click', () => startComponentProduction(b.dataset.id)));
+  }
+
+  function startComponentProduction(componentId) {
+    if (state.production.active) { showToast('Уже идёт производство'); return; }
+    const comp = components[componentId];
+    if (!comp) return;
+    const endTime = Date.now() + comp.productionTime;
+    state.production = { active: true, endTime, componentId };
+    savePlayerData();
+    updateProductionUI();
+    scheduleProductionFinish();
+    showToast(`Производство ${comp.name} запущено`);
+  }
+
+  function updateProductionUI() {
     const statusP = document.getElementById('productionStatus');
     if (state.production.active) {
       const remaining = Math.max(0, Math.ceil((state.production.endTime - Date.now()) / 1000));
-      statusP.textContent = `Производство идёт: ${formatTime(remaining)} до завершения`;
-    } else if (state.production.item) {
-      statusP.textContent = `Готово: ${state.production.item}. Заберите в инвентаре!`;
+      const compName = components[state.production.componentId]?.name || '';
+      statusP.innerHTML = `Производство <span class="production-timer">${compName}</span>: <span class="production-timer">${formatTime(remaining)}</span>`;
     } else {
       statusP.textContent = 'Нет активного производства';
     }
   }
 
-  function updateInventoryUI() {
-    const listDiv = document.getElementById('inventoryList');
-    if (!state.inventory.length) { listDiv.innerHTML = '<p style="color:#aaa">Инвентарь пуст</p>'; return; }
-    let html = '';
-    state.inventory.forEach((item, index) => {
-      html += `<div class="deal-item"><p>${item} <button class="modal-btn use-item-btn" data-index="${index}">Использовать</button> <button class="modal-btn sell-item-btn" data-index="${index}">Продать (1000💎)</button></p></div>`;
-    });
-    listDiv.innerHTML = html;
-    document.querySelectorAll('.use-item-btn').forEach(b => b.addEventListener('click', () => useItem(parseInt(b.dataset.index))));
-    document.querySelectorAll('.sell-item-btn').forEach(b => b.addEventListener('click', () => sellItem(parseInt(b.dataset.index))));
-  }
-
-  document.getElementById('startProductionBtn').addEventListener('click', () => {
-    if (state.production.active || state.production.item) { showToast('Уже есть активное производство'); return; }
-    if (state.energy < 2000) { showToast('Недостаточно монет'); return; }
-    state.energy -= 2000;
-    const items = ['Кристалл x2', 'Батарейка', 'Огненный шар'];
-    const item = items[Math.floor(Math.random() * items.length)];
-    const endTime = Date.now() + 30 * 60000;
-    state.production = { active: true, endTime: endTime, item: item };
-    savePlayerData();
-    updateUI();
-    updateFactoryUI();
-    scheduleProductionFinish();
-  });
-
   function scheduleProductionFinish() {
-    const remaining = state.production.endTime - Date.now();
-    if (remaining > 0) setTimeout(() => finishProduction(), remaining);
+    if (state.production.active) {
+      const remaining = state.production.endTime - Date.now();
+      if (remaining > 0) {
+        clearTimeout(state.production._timeout);
+        state.production._timeout = setTimeout(() => finishProduction(), remaining);
+      } else {
+        finishProduction();
+      }
+    }
   }
 
   function finishProduction() {
     if (!state.production.active) return;
-    state.production.active = false;
-    state.inventory.push(state.production.item);
-    state.production.item = null;
+    const compId = state.production.componentId;
+    state.inventoryComponents[compId] = (state.inventoryComponents[compId] || 0) + 1;
+    state.production = { active: false, endTime: 0, componentId: null };
     savePlayerData();
-    updateFactoryUI();
+    updateProductionUI();
     updateInventoryUI();
-    showToast('Производство завершено! Предмет в инвентаре.');
+    showToast(`Производство завершено: +1 ${components[compId]?.name}`);
   }
 
-  function useItem(index) {
-    const item = state.inventory[index];
-    if (!item) return;
-    if (item === 'Кристалл x2') activateBoost('x2');
-    else if (item === 'Батарейка') activateBoost('autoTap');
-    else if (item === 'Огненный шар') { state.fire += 5; showToast('Получено +5🔥'); }
-    state.inventory.splice(index, 1);
-    savePlayerData();
-    updateUI();
-    updateInventoryUI();
+  function updateInventoryUI() {
+    const invDiv = document.getElementById('inventoryItems');
+    let html = '<h5>Компоненты:</h5>';
+    Object.entries(state.inventoryComponents).forEach(([id, qty]) => {
+      if (qty > 0) html += `<p>${components[id]?.name}: ${qty}</p>`;
+    });
+    html += '<h5>Готовые предметы:</h5>';
+    if (state.inventoryItems.length === 0) html += '<p>Пусто</p>';
+    else state.inventoryItems.forEach((item, i) => {
+      html += `<p>${item.name} <button class="modal-btn sell-inv-btn" data-index="${i}">Продать</button> <button class="modal-btn use-inv-btn" data-index="${i}">Использовать</button></p>`;
+    });
+    invDiv.innerHTML = html;
+    document.querySelectorAll('.sell-inv-btn').forEach(b => b.addEventListener('click', () => {
+      const idx = parseInt(b.dataset.index);
+      const item = state.inventoryItems[idx];
+      if (!item) return;
+      const price = prompt('Цена продажи (💎):');
+      if (!price || isNaN(price) || price <= 0) return;
+      db.ref('market/listings').push({
+        seller: state.userId,
+        item: item,
+        price: parseInt(price),
+        type: 'fixed',
+        status: 'active',
+        createdAt: Date.now()
+      });
+      state.inventoryItems.splice(idx, 1);
+      savePlayerData();
+      updateInventoryUI();
+      showToast('Предмет выставлен на рынок');
+    }));
+    document.querySelectorAll('.use-inv-btn').forEach(b => b.addEventListener('click', () => {
+      const idx = parseInt(b.dataset.index);
+      const item = state.inventoryItems[idx];
+      if (!item) return;
+      if (item.type === 'boost') activateBoost(item.effect);
+      else if (item.type === 'fire') { state.fire += item.amount; showToast(`+${item.amount}🔥`); }
+      state.inventoryItems.splice(idx, 1);
+      savePlayerData();
+      updateUI();
+      updateInventoryUI();
+    }));
   }
 
-  function sellItem(index) {
-    if (!state.inventory[index]) return;
-    state.energy += 1000;
-    state.inventory.splice(index, 1);
-    savePlayerData();
-    updateUI();
-    updateInventoryUI();
-    showToast('Предмет продан за 1000 💎');
+  // Рынок
+  document.getElementById('menuMarket').addEventListener('click', () => {
+    document.getElementById('menuModal').classList.add('hidden');
+    marketModal.classList.remove('hidden');
+    document.getElementById('marketBuyTabBtn').click();
+  });
+  const marketModal = document.getElementById('marketModal');
+  document.getElementById('closeMarketBtn').addEventListener('click', () => marketModal.classList.add('hidden'));
+
+  document.getElementById('marketBuyTabBtn').addEventListener('click', () => {
+    document.getElementById('marketBuyTabContent').classList.remove('hidden');
+    document.getElementById('marketSellTabContent').classList.add('hidden');
+    document.getElementById('marketMyListingsTabContent').classList.add('hidden');
+    document.getElementById('marketBuyTabBtn').classList.add('active');
+    document.getElementById('marketSellTabBtn').classList.remove('active');
+    document.getElementById('marketMyListingsTabBtn').classList.remove('active');
+    loadMarketListings();
+  });
+  document.getElementById('marketSellTabBtn').addEventListener('click', () => {
+    document.getElementById('marketBuyTabContent').classList.add('hidden');
+    document.getElementById('marketSellTabContent').classList.remove('hidden');
+    document.getElementById('marketMyListingsTabContent').classList.add('hidden');
+    document.getElementById('marketSellTabBtn').classList.add('active');
+    document.getElementById('marketBuyTabBtn').classList.remove('active');
+    document.getElementById('marketMyListingsTabBtn').classList.remove('active');
+    updateSellSelect();
+  });
+  document.getElementById('marketMyListingsTabBtn').addEventListener('click', () => {
+    document.getElementById('marketBuyTabContent').classList.add('hidden');
+    document.getElementById('marketSellTabContent').classList.add('hidden');
+    document.getElementById('marketMyListingsTabContent').classList.remove('hidden');
+    document.getElementById('marketMyListingsTabBtn').classList.add('active');
+    document.getElementById('marketBuyTabBtn').classList.remove('active');
+    document.getElementById('marketSellTabBtn').classList.remove('active');
+    loadMyListings();
+  });
+
+  function loadMarketListings() {
+    db.ref('market/listings').on('value', snap => {
+      const data = snap.val() || {};
+      const listDiv = document.getElementById('marketListings');
+      let html = '';
+      Object.entries(data).forEach(([id, listing]) => {
+        if (listing.status !== 'active' || listing.seller === state.userId) return;
+        html += `<div class="deal-item">
+          <p><b>${listing.item.name}</b> (${listing.item.type})</p>
+          <p>Цена: ${listing.price} 💎</p>
+          <button class="modal-btn buy-market-btn" data-id="${id}">Купить</button>
+        </div>`;
+      });
+      listDiv.innerHTML = html || '<p style="color:#aaa">Нет лотов</p>';
+      document.querySelectorAll('.buy-market-btn').forEach(b => b.addEventListener('click', () => buyMarketItem(b.dataset.id)));
+    });
+  }
+
+  function buyMarketItem(listingId) {
+    db.ref('market/listings/' + listingId).once('value').then(snap => {
+      const listing = snap.val();
+      if (!listing || listing.status !== 'active') { showToast('Недоступно'); return; }
+      if (state.energy < listing.price) { showToast('Недостаточно монет'); return; }
+      state.energy -= listing.price;
+      db.ref('players/' + listing.seller + '/energy').transaction(e => (e || 0) + listing.price);
+      state.inventoryItems.push(listing.item);
+      db.ref('market/listings/' + listingId).update({ status: 'sold' });
+      savePlayerData();
+      updateUI();
+      showToast('Предмет куплен!');
+      loadMarketListings();
+    });
+  }
+
+  function updateSellSelect() {
+    const select = document.getElementById('sellItemSelect');
+    select.innerHTML = '';
+    state.inventoryItems.forEach((item, i) => {
+      const option = document.createElement('option');
+      option.value = i;
+      option.textContent = item.name;
+      select.appendChild(option);
+    });
+  }
+
+  document.getElementById('createListingBtn').addEventListener('click', () => {
+    const select = document.getElementById('sellItemSelect');
+    const index = parseInt(select.value);
+    const item = state.inventoryItems[index];
+    if (!item) { showToast('Выберите предмет'); return; }
+    const price = parseInt(document.getElementById('sellPrice').value);
+    if (!price || price <= 0) { showToast('Укажите цену'); return; }
+    const isAuction = document.getElementById('isAuctionCheckbox').checked;
+    const listingData = {
+      seller: state.userId,
+      item: item,
+      price: price,
+      type: isAuction ? 'auction' : 'fixed',
+      status: 'active',
+      createdAt: Date.now(),
+      bids: isAuction ? [{ bidder: null, amount: 0 }] : null
+    };
+    db.ref('market/listings').push(listingData).then(() => {
+      state.inventoryItems.splice(index, 1);
+      savePlayerData();
+      updateInventoryUI();
+      updateSellSelect();
+      document.getElementById('sellPrice').value = '';
+      showToast('Лот выставлен');
+    });
+  });
+
+  function loadMyListings() {
+    db.ref('market/listings').on('value', snap => {
+      const data = snap.val() || {};
+      const listDiv = document.getElementById('myListingsList');
+      let html = '';
+      Object.entries(data).forEach(([id, listing]) => {
+        if (listing.seller !== state.userId) return;
+        html += `<div class="deal-item">
+          <p><b>${listing.item.name}</b> – ${listing.price} 💎 (${listing.status})</p>
+          ${listing.status === 'active' ? `<button class="modal-btn cancel-listing-btn" data-id="${id}">Отменить</button>` : ''}
+        </div>`;
+      });
+      listDiv.innerHTML = html || '<p style="color:#aaa">Нет лотов</p>';
+      document.querySelectorAll('.cancel-listing-btn').forEach(b => b.addEventListener('click', () => {
+        const listingId = b.dataset.id;
+        if (confirm('Отменить лот?')) {
+          db.ref('market/listings/' + listingId).update({ status: 'cancelled' });
+          state.inventoryItems.push(data[listingId].item);
+          savePlayerData();
+          updateInventoryUI();
+          loadMyListings();
+          showToast('Лот отменён');
+        }
+      }));
+    });
   }
 
   // Меню и основные обработчики
