@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, shrink-to-fit=no">
-  <title>Crystal Tap – Фабрика и Рынок</title>
+  <title>Crystal Tap – Полная версия</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
-      background:radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 100%);
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 100%);
       min-height:100vh; display:flex; justify-content:center; align-items:center;
       touch-action:manipulation; user-select:none;
       -webkit-tap-highlight-color:transparent; color:#fff; padding:10px;
@@ -27,11 +27,12 @@
     @keyframes spin { to { transform:rotate(360deg); } }
     .loading-text { color:#aaa; font-size:1.2rem; }
     .game-container {
-      width:100%; max-width:440px;
+      width:100%; max-width:460px;
       background:rgba(255,255,255,0.05); backdrop-filter:blur(15px);
       border-radius:40px; padding:20px 20px 30px;
       box-shadow:0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1);
       display:flex; flex-direction:column; align-items:center; gap:20px;
+      position:relative;
     }
     .header { display:flex; justify-content:space-between; align-items:center; width:100%; padding:0 5px; }
     .score-box {
@@ -72,6 +73,12 @@
     .crystal:active { transform:scale(0.9); box-shadow:0 0 100px #e0aaff, 0 0 180px rgba(224,170,255,0.8); }
     @keyframes float { 0%,100% { transform:translateY(0px); } 50% { transform:translateY(-10px); } }
     @keyframes glowPulse { 0% { box-shadow:0 0 40px #9d4edd, 0 0 100px rgba(157,78,221,0.4); } 100% { box-shadow:0 0 80px #c77dff, 0 0 150px rgba(199,125,255,0.7); } }
+    .pet-display {
+      position:absolute; bottom:-10px; right:-30px;
+      font-size:3rem; z-index:3; animation: petFloat 3s ease-in-out infinite;
+      filter: drop-shadow(0 0 10px rgba(255,215,0,0.7));
+    }
+    @keyframes petFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
     .particle {
       position:absolute; pointer-events:none; font-weight:bold; color:#ffd166;
       font-size:1.2rem; text-shadow:0 0 10px #ffaa00;
@@ -113,17 +120,37 @@
       font-weight:bold; font-size:1.2rem; cursor:pointer; margin-top:10px;
     }
     .menu-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:15px; }
-    .menu-item { background:rgba(0,0,0,0.5); border-radius:20px; padding:15px; text-align:center; cursor:pointer; border:2px solid transparent; font-weight:bold; backdrop-filter:blur(5px); }
-    .menu-item:active { background:#3a3a5a; }
+    .menu-item { 
+      background:rgba(0,0,0,0.5); border-radius:20px; padding:15px; text-align:center; cursor:pointer; 
+      border:2px solid transparent; font-weight:bold; backdrop-filter:blur(5px);
+      transition: 0.2s; color:white;
+    }
+    .menu-item:hover, .menu-item:active { background:#3a3a5a; border-color:#f9d423; }
 
     .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(10px); display:flex; justify-content:center; align-items:center; z-index:100; }
-    .modal-content { background:#1a1a2e; border-radius:30px; padding:25px; max-width:400px; width:90%; max-height:80vh; overflow-y:auto; box-shadow:0 20px 40px rgba(0,0,0,0.8); color:white; }
-    .modal-input { width:100%; padding:12px; border-radius:25px; border:none; background:rgba(255,255,255,0.15); color:white; margin:10px 0; font-size:1rem; }
-    .modal-btn { background:linear-gradient(135deg, #f9d423, #ff4e50); border:none; border-radius:25px; padding:12px 20px; color:black; font-weight:bold; cursor:pointer; margin:5px; }
-    .tabs { display:flex; gap:5px; margin-bottom:10px; }
-    .tab-btn { flex:1; padding:10px; background:#2d2d44; border:none; color:white; border-radius:15px; font-weight:bold; cursor:pointer; }
-    .tab-btn.active { background:#f9d423; color:black; }
-    .league-badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:0.7rem; font-weight:bold; margin-left:5px; }
+    .modal-content { 
+      background:rgba(20, 20, 40, 0.95); border-radius:30px; padding:25px; 
+      max-width:420px; width:90%; max-height:85vh; overflow-y:auto; 
+      box-shadow:0 0 40px rgba(249, 212, 35, 0.3), 0 20px 40px rgba(0,0,0,0.8); 
+      color:white; border:1px solid rgba(255,255,255,0.15);
+      backdrop-filter:blur(20px);
+    }
+    .modal-input { width:100%; padding:14px; border-radius:25px; border:none; background:rgba(0,0,0,0.5); color:white; margin:10px 0; font-size:1rem; box-shadow:inset 0 2px 5px rgba(0,0,0,0.5); }
+    .modal-btn { 
+      background:linear-gradient(135deg, #f9d423, #ff4e50); border:none; border-radius:25px; 
+      padding:12px 20px; color:black; font-weight:bold; cursor:pointer; margin:5px;
+      box-shadow:0 4px 15px rgba(249, 212, 35, 0.4); transition:0.2s;
+      font-size:0.9rem;
+    }
+    .modal-btn:active { transform:scale(0.95); }
+    .tabs { display:flex; gap:5px; margin-bottom:15px; }
+    .tab-btn { 
+      flex:1; padding:12px; background:rgba(255,255,255,0.1); border:none; 
+      color:white; border-radius:15px; font-weight:bold; cursor:pointer;
+      transition:0.2s; backdrop-filter:blur(5px);
+    }
+    .tab-btn.active { background:#f9d423; color:black; box-shadow:0 0 15px #f9d423; }
+    .league-badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.7rem; font-weight:bold; margin-left:8px; }
     .bronze { background:#cd7f32; color:white; }
     .silver { background:#c0c0c0; color:black; }
     .gold { background:#ffd700; color:black; }
@@ -135,27 +162,38 @@
 
     .toast {
       position:fixed; top:20px; left:50%; transform:translateX(-50%);
-      background:#2d2d44; color:white; padding:12px 25px; border-radius:30px;
+      background:rgba(45,45,68,0.95); color:white; padding:15px 30px; border-radius:40px;
       font-weight:bold; z-index:200; opacity:0; transition: opacity 0.3s;
-      box-shadow:0 5px 20px rgba(0,0,0,0.6);
+      box-shadow:0 10px 30px rgba(0,0,0,0.7); border:1px solid rgba(255,255,255,0.2);
     }
     .toast.show { opacity:1; }
 
-    .pvp-container { width:100%; height:300px; background:#0f0f1a; border-radius:20px; position:relative; overflow:hidden; margin:15px 0; border:2px solid #f9d423; }
-    .basket { position:absolute; bottom:10px; width:80px; height:40px; background:linear-gradient(135deg, #8B4513, #A0522D); border-radius:10px 10px 20px 20px; box-shadow:0 0 15px rgba(255,215,0,0.5); left:50%; transform:translateX(-50%); }
-    .fruit { position:absolute; font-size:2rem; top:-40px; }
-    .score-board { display:flex; justify-content:space-around; margin:10px 0; font-size:1.2rem; font-weight:bold; }
-    .pvp-timer { text-align:center; font-size:1.5rem; margin:10px 0; }
+    .pvp-container { width:100%; height:280px; background:#0f0f1a; border-radius:20px; position:relative; overflow:hidden; margin:15px 0; border:2px solid #f9d423; box-shadow:0 0 30px rgba(249,212,35,0.3); }
+    .basket { position:absolute; bottom:10px; width:80px; height:40px; background:linear-gradient(135deg, #8B4513, #A0522D); border-radius:10px 10px 20px 20px; box-shadow:0 0 20px rgba(255,215,0,0.6); left:50%; transform:translateX(-50%); }
+    .fruit { position:absolute; font-size:2rem; top:-40px; filter:drop-shadow(0 0 5px white); }
+    .score-board { display:flex; justify-content:space-around; margin:10px 0; font-size:1.3rem; font-weight:bold; }
+    .pvp-timer { text-align:center; font-size:1.8rem; margin:10px 0; color:#f9d423; text-shadow:0 0 10px #f9d423; }
 
-    .chat-messages { height:200px; overflow-y:auto; background:rgba(0,0,0,0.3); border-radius:15px; padding:10px; margin:10px 0; }
-    .chat-msg { background:#2d2d44; padding:8px 12px; border-radius:15px; margin:5px 0; max-width:80%; }
-    .chat-msg.my { margin-left:auto; background:#f9d423; color:black; }
+    .chat-messages { height:200px; overflow-y:auto; background:rgba(0,0,0,0.5); border-radius:20px; padding:15px; margin:10px 0; box-shadow:inset 0 0 10px rgba(0,0,0,0.8); }
+    .chat-msg { background:rgba(45,45,68,0.8); padding:10px 15px; border-radius:20px; margin:8px 0; max-width:80%; backdrop-filter:blur(5px); }
+    .chat-msg.my { margin-left:auto; background:rgba(249, 212, 35, 0.8); color:black; }
 
-    .credit-rating { font-size:0.9rem; color:#ffd700; margin-left:5px; }
-    .deal-item { background:#2d2d44; padding:10px; border-radius:10px; margin:8px 0; }
+    .credit-rating { font-size:0.9rem; color:#ffd700; margin-left:5px; font-weight:bold; }
+    .deal-item { 
+      background:rgba(30, 30, 50, 0.9); padding:15px; border-radius:15px; margin:10px 0; 
+      box-shadow:0 5px 15px rgba(0,0,0,0.5); border-left:4px solid #f9d423;
+      transition:0.2s;
+    }
     .deal-item p { margin:5px 0; }
-    .avatar { margin-right:5px; }
+    .avatar { margin-right:8px; font-size:1.3rem; }
     .production-timer { font-weight:bold; color:#f9d423; }
+    .rarity-common { color:#aaa; }
+    .rarity-rare { color:#00bfff; }
+    .rarity-epic { color:#a020f0; }
+    .rarity-legendary { color:#ffd700; }
+
+    .progress-custom { width:100%; height:12px; border-radius:10px; background:rgba(255,255,255,0.1); overflow:hidden; margin:5px 0; }
+    .progress-custom > div { height:100%; background:linear-gradient(90deg, #f9d423, #ff4e50); border-radius:10px; }
   </style>
 </head>
 <body>
@@ -168,7 +206,10 @@
     <div class="fire-badge" id="fireBadge">🔥 <span id="fireAmount">0</span></div>
     <div class="id-badge" id="playerIdDisplay">ID: ...</div>
   </div>
-  <div class="crystal-area" id="crystalArea"><div class="crystal" id="crystal">💎</div></div>
+  <div class="crystal-area" id="crystalArea">
+    <div class="crystal" id="crystal">💎</div>
+    <div class="pet-display" id="petDisplay"></div>
+  </div>
   <div class="stats-row">
     <div class="stat" id="tapStat"><div class="stat-label">За тап</div><div class="stat-value" id="tapPower">1</div></div>
     <div class="stat" id="passiveStatContainer"><div class="stat-label">В сек</div><div class="stat-value" id="passivePower">0</div></div>
@@ -201,6 +242,8 @@
       <div class="menu-item" id="menuBank">🏦 Банк</div>
       <div class="menu-item" id="menuFactory">🏭 Фабрика</div>
       <div class="menu-item" id="menuMarket">🏪 Рынок</div>
+      <div class="menu-item" id="menuInventory">🎒 Инвентарь</div>
+      <div class="menu-item" id="menuPass">🎟 Crystal Pass</div>
     </div>
     <button class="modal-btn" id="closeMenuBtn">Закрыть</button>
   </div>
@@ -212,7 +255,7 @@
     <h3>👥 Друзья</h3>
     <div class="tabs">
       <button class="tab-btn active" id="friendsTabBtn">Мои друзья</button>
-      <button class="tab-btn" id="requestsTabBtn">Входящие заявки</button>
+      <button class="tab-btn" id="requestsTabBtn">Заявки</button>
     </div>
     <div id="friendsTabContent">
       <input type="text" class="modal-input" id="friendIdInput" placeholder="Введите ID друга">
@@ -289,23 +332,22 @@
     <div id="investTabContent">
       <h4>Создать заявку на займ</h4>
       <input type="number" class="modal-input" id="investAmount" placeholder="Сумма (💎)">
-      <input type="number" class="modal-input" id="investPercent" placeholder="Процент возврата (например, 15)">
+      <input type="number" class="modal-input" id="investPercent" placeholder="Процент возврата">
       <input type="number" class="modal-input" id="investDuration" placeholder="Срок (минут)">
       <button class="modal-btn" id="createInvestBtn">Создать</button>
       <h4 style="margin-top:15px;">Активные предложения</h4>
       <div id="investList"></div>
     </div>
     <div id="myDealsTabContent" class="hidden">
-      <h4>Мои активные сделки</h4>
       <div id="myDealsList"></div>
     </div>
     <div id="insuranceTabContent" class="hidden">
       <p>Страховка снизит потерю 🔥 при поражении на 50%.</p>
       <p>Стоимость: 2000 💎</p>
       <button class="modal-btn" id="buyInsuranceBtn">Купить страховку</button>
-      <p id="insuranceStatus" style="margin-top:10px;">Нет активной страховки</p>
+      <p id="insuranceStatus" style="margin-top:10px;"></p>
     </div>
-    <button class="modal-btn" id="closeBankBtn" style="margin-top:10px;">Закрыть</button>
+    <button class="modal-btn" id="closeBankBtn">Закрыть</button>
   </div>
 </div>
 
@@ -315,22 +357,12 @@
     <div class="tabs">
       <button class="tab-btn active" id="craftTabBtn">Крафт</button>
       <button class="tab-btn" id="componentsTabBtn">Производство</button>
-      <button class="tab-btn" id="inventoryTabBtn">Инвентарь</button>
+      <button class="tab-btn" id="factoryInventoryTabBtn">Инвентарь</button>
     </div>
-    <div id="craftTabContent">
-      <h4>Выберите рецепт</h4>
-      <div id="recipesList"></div>
-    </div>
-    <div id="componentsTabContent" class="hidden">
-      <h4>Производство компонентов</h4>
-      <div id="componentsList"></div>
-      <p id="productionStatus" style="margin-top:10px;">Нет активного производства</p>
-    </div>
-    <div id="inventoryTabContent" class="hidden">
-      <h4>Ваши ресурсы</h4>
-      <div id="inventoryItems"></div>
-    </div>
-    <button class="modal-btn" id="closeFactoryBtn" style="margin-top:10px;">Закрыть</button>
+    <div id="craftTabContent"><div id="recipesList"></div></div>
+    <div id="componentsTabContent" class="hidden"><div id="componentsList"></div><p id="productionStatus"></p></div>
+    <div id="factoryInventoryTabContent" class="hidden"><div id="factoryInventoryItems"></div></div>
+    <button class="modal-btn" id="closeFactoryBtn">Закрыть</button>
   </div>
 </div>
 
@@ -342,20 +374,41 @@
       <button class="tab-btn" id="marketSellTabBtn">Продажа</button>
       <button class="tab-btn" id="marketMyListingsTabBtn">Мои лоты</button>
     </div>
-    <div id="marketBuyTabContent">
-      <div id="marketListings"></div>
-    </div>
+    <div id="marketBuyTabContent"><div id="marketListings"></div></div>
     <div id="marketSellTabContent" class="hidden">
-      <h4>Выставить предмет</h4>
       <select class="modal-input" id="sellItemSelect"></select>
       <input type="number" class="modal-input" id="sellPrice" placeholder="Цена (💎)">
       <label><input type="checkbox" id="isAuctionCheckbox"> Аукцион</label>
       <button class="modal-btn" id="createListingBtn">Выставить</button>
     </div>
-    <div id="marketMyListingsTabContent" class="hidden">
-      <div id="myListingsList"></div>
+    <div id="marketMyListingsTabContent" class="hidden"><div id="myListingsList"></div></div>
+    <button class="modal-btn" id="closeMarketBtn">Закрыть</button>
+  </div>
+</div>
+
+<div id="inventoryModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>🎒 Инвентарь</h3>
+    <div class="tabs">
+      <button class="tab-btn active" id="invItemsTab">Предметы</button>
+      <button class="tab-btn" id="invPetsTab">Питомцы</button>
+      <button class="tab-btn" id="invResourcesTab">Ресурсы</button>
     </div>
-    <button class="modal-btn" id="closeMarketBtn" style="margin-top:10px;">Закрыть</button>
+    <div id="invItemsContent"></div>
+    <div id="invPetsContent" class="hidden"></div>
+    <div id="invResourcesContent" class="hidden"></div>
+    <button class="modal-btn" id="closeInventoryBtn">Закрыть</button>
+  </div>
+</div>
+
+<div id="passModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>🎟 Crystal Pass</h3>
+    <p>Уровень: <span id="passLevelDisplay">1</span>/100</p>
+    <div class="progress-custom"><div id="passProgressFill" style="width:0%"></div></div>
+    <p><span id="passXpDisplay">0</span> / 1000 XP</p>
+    <div id="passRewardDisplay"></div>
+    <button class="modal-btn" id="closePassBtn">Закрыть</button>
   </div>
 </div>
 
@@ -364,6 +417,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
 <script>
+  // Конфигурация Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyDFR3PN4FizMbTnOysavtDJ4sgZIKnPnCw",
     authDomain: "crystal-tap-game.firebaseapp.com",
@@ -376,6 +430,14 @@
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.database();
+
+  const AVATARS = ['🐶','🐱','🐼','🐨','🦊','🐰','🐸','🐵','🐙','🦁','🐮','🐷'];
+  function getAvatar(id) {
+    if (!id) return '👤';
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) hash = (hash << 5) - hash + id.charCodeAt(i);
+    return AVATARS[Math.abs(hash) % AVATARS.length];
+  }
 
   const state = {
     energy: 0, tapPower: 1, passivePower: 0,
@@ -395,6 +457,11 @@
     production: { active: false, endTime: 0, componentId: null },
     inventoryComponents: {},
     inventoryItems: [],
+    inventoryPets: [],
+    equippedPetIndex: -1,
+    passXP: 0,
+    passLevel: 0,
+    passStartTime: Date.now(),
     pvp: {
       active: false, searching: false, opponent: null, gameId: null,
       myScore: 0, opponentScore: 0, timer: 60, interval: null, fruitInterval: null,
@@ -402,28 +469,40 @@
     }
   };
 
+  const petsData = [
+    { id: 'cat', name: 'Котёнок', rarity: 'common', emoji: '🐱', buff: { tapPower: 1 } },
+    { id: 'dog', name: 'Щенок', rarity: 'common', emoji: '🐶', buff: { tapPower: 1 } },
+    { id: 'bunny', name: 'Кролик', rarity: 'common', emoji: '🐰', buff: { passivePower: 0.3 } },
+    { id: 'fox', name: 'Лисёнок', rarity: 'rare', emoji: '🦊', buff: { tapPower: 3, passivePower: 0.5 } },
+    { id: 'panda', name: 'Панда', rarity: 'rare', emoji: '🐼', buff: { tapPower: 2, critChance: 0.02 } },
+    { id: 'dragon', name: 'Дракончик', rarity: 'epic', emoji: '🐉', buff: { tapPower: 5, passivePower: 1, firePerMin: 0.5 } },
+    { id: 'phoenix', name: 'Феникс', rarity: 'epic', emoji: '🐦‍🔥', buff: { tapPower: 4, critChance: 0.05, firePerMin: 0.3 } },
+    { id: 'unicorn', name: 'Единорог', rarity: 'legendary', emoji: '🦄', buff: { tapPower: 10, passivePower: 3, critChance: 0.08, firePerMin: 1 } },
+  ];
+
+  function getPetById(petId) { return petsData.find(p => p.id === petId); }
+
+  const PASS_XP_PER_LEVEL = 1000;
+  const PASS_MAX_LEVEL = 99;
+  const PASS_DURATION_DAYS = 30;
+
+  function getPassReward(level) {
+    if (level < 10) return { type: '💎', amount: 500 + level * 100 };
+    if (level < 25) return { type: '🔥', amount: 5 + Math.floor(level/5) };
+    if (level === 10) return { type: 'pet', petId: 'cat' };
+    if (level === 20) return { type: 'pet', petId: 'fox' };
+    if (level === 30) return { type: 'pet', petId: 'panda' };
+    if (level === 40) return { type: 'pet', petId: 'dragon' };
+    if (level === 50) return { type: 'pet', petId: 'phoenix' };
+    if (level === 60) return { type: 'pet', petId: 'unicorn' };
+    if (level >= 70) return { type: '💎', amount: 5000 + (level-70)*500 };
+    return { type: '💎', amount: 1000 + level * 50 };
+  }
+
   const recipes = [
-    {
-      id: 'boost_x2',
-      name: 'Кристалл x2',
-      description: 'Активирует буст x2 на 60 сек',
-      components: { iron_ingot: 2, magic_dust: 1 },
-      result: { type: 'boost', effect: 'x2' }
-    },
-    {
-      id: 'boost_autotap',
-      name: 'Батарейка',
-      description: 'Активирует авто-тап на 60 сек',
-      components: { iron_ingot: 3, magic_dust: 2 },
-      result: { type: 'boost', effect: 'autoTap' }
-    },
-    {
-      id: 'fire_bonus',
-      name: 'Огненный шар',
-      description: 'Даёт +5 🔥',
-      components: { magic_dust: 4, iron_ingot: 1 },
-      result: { type: 'fire', amount: 5 }
-    }
+    { id: 'boost_x2', name: 'Кристалл x2', description: 'Активирует буст x2 на 60 сек', components: { iron_ingot: 2, magic_dust: 1 }, result: { type: 'boost', effect: 'x2' } },
+    { id: 'boost_autotap', name: 'Батарейка', description: 'Активирует авто-тап на 60 сек', components: { iron_ingot: 3, magic_dust: 2 }, result: { type: 'boost', effect: 'autoTap' } },
+    { id: 'fire_bonus', name: 'Огненный шар', description: 'Даёт +5 🔥', components: { magic_dust: 4, iron_ingot: 1 }, result: { type: 'fire', amount: 5 } }
   ];
 
   const components = {
@@ -431,13 +510,16 @@
     magic_dust: { name: 'Магический порошок', productionTime: 3 * 60000 }
   };
 
-  const AVATARS = ['🐶','🐱','🐼','🐨','🦊','🐰','🐸','🐵','🐙','🦁','🐮','🐷'];
-  function getAvatar(id) {
-    if (!id) return '👤';
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) hash = (hash << 5) - hash + id.charCodeAt(i);
-    return AVATARS[Math.abs(hash) % AVATARS.length];
-  }
+  const leagues = [
+    { name: 'Бронза', class: 'bronze', minEnergy: 0, minFire: 0, bonus: 0 },
+    { name: 'Серебро', class: 'silver', minEnergy: 1000, minFire: 0, bonus: 2 },
+    { name: 'Золото', class: 'gold', minEnergy: 10000, minFire: 0, bonus: 3 },
+    { name: 'Алмаз', class: 'diamond', minEnergy: 100000, minFire: 0, bonus: 5 },
+    { name: 'Мифрил', class: 'mythril', minEnergy: 500000, minFire: 50, bonus: 10 },
+    { name: 'Этерий', class: 'ether', minEnergy: 1500000, minFire: 150, bonus: 20 },
+    { name: 'Астрал', class: 'astral', minEnergy: 5000000, minFire: 400, bonus: 35 },
+    { name: 'Космос', class: 'cosmic', minEnergy: 15000000, minFire: 1000, bonus: 50 }
+  ];
 
   const scoreDisplay = document.getElementById('scoreDisplay');
   const tapPowerDisplay = document.getElementById('tapPower');
@@ -464,6 +546,11 @@
   const pvpTimerDisplay = document.getElementById('pvpTimer');
   const pvpField = document.getElementById('pvpField');
   const basket = document.getElementById('basket');
+  const petDisplay = document.getElementById('petDisplay');
+  const passLevelDisplay = document.getElementById('passLevelDisplay');
+  const passProgressFill = document.getElementById('passProgressFill');
+  const passXpDisplay = document.getElementById('passXpDisplay');
+  const passRewardDisplay = document.getElementById('passRewardDisplay');
 
   function showToast(text, color = '#f9d423') {
     const toast = document.getElementById('toast');
@@ -472,17 +559,6 @@
     clearTimeout(toast._timeout);
     toast._timeout = setTimeout(() => toast.classList.remove('show'), 2500);
   }
-
-  const leagues = [
-    { name: 'Бронза', class: 'bronze', minEnergy: 0, minFire: 0, bonus: 0 },
-    { name: 'Серебро', class: 'silver', minEnergy: 1000, minFire: 0, bonus: 2 },
-    { name: 'Золото', class: 'gold', minEnergy: 10000, minFire: 0, bonus: 3 },
-    { name: 'Алмаз', class: 'diamond', minEnergy: 100000, minFire: 0, bonus: 5 },
-    { name: 'Мифрил', class: 'mythril', minEnergy: 500000, minFire: 50, bonus: 10 },
-    { name: 'Этерий', class: 'ether', minEnergy: 1500000, minFire: 150, bonus: 20 },
-    { name: 'Астрал', class: 'astral', minEnergy: 5000000, minFire: 400, bonus: 35 },
-    { name: 'Космос', class: 'cosmic', minEnergy: 15000000, minFire: 1000, bonus: 50 }
-  ];
 
   function getCurrentLeague() {
     for (let i = leagues.length - 1; i >= 0; i--) {
@@ -535,6 +611,11 @@
         state.production = data.production || { active: false, endTime: 0, componentId: null };
         state.inventoryComponents = data.inventoryComponents || {};
         state.inventoryItems = data.inventoryItems || [];
+        state.inventoryPets = data.inventoryPets || [];
+        state.equippedPetIndex = data.equippedPetIndex ?? -1;
+        state.passXP = data.passXP || 0;
+        state.passLevel = data.passLevel || 0;
+        state.passStartTime = data.passStartTime || Date.now();
         if (data.friends) state.friends = Object.keys(data.friends);
       } else savePlayerData();
 
@@ -547,6 +628,8 @@
       if (state.secretCodeUsed) disableSecretCode();
       checkLeagueUpgrade();
       updateFireDisplay();
+      updateEquippedPet();
+      updatePassUI();
 
       db.ref('players/' + uid + '/energy').on('value', snap => { if (state.dataLoaded) { state.energy = snap.val() || 0; updateUI(); } });
       db.ref('players/' + uid + '/fire').on('value', snap => { if (state.dataLoaded) { state.fire = snap.val() || 0; updateFireDisplay(); updateUI(); } });
@@ -559,18 +642,23 @@
         }
       });
       db.ref('players/' + uid + '/inventoryComponents').on('value', snap => {
-        if (state.dataLoaded) { state.inventoryComponents = snap.val() || {}; updateInventoryUI(); }
+        if (state.dataLoaded) { state.inventoryComponents = snap.val() || {}; updateFactoryInventoryUI(); }
       });
       db.ref('players/' + uid + '/inventoryItems').on('value', snap => {
-        if (state.dataLoaded) { state.inventoryItems = snap.val() || []; updateInventoryUI(); }
+        if (state.dataLoaded) { state.inventoryItems = snap.val() || []; updateFactoryInventoryUI(); }
       });
+      db.ref('players/' + uid + '/inventoryPets').on('value', snap => {
+        if (state.dataLoaded) { state.inventoryPets = snap.val() || []; renderInventoryPets(); }
+      });
+      db.ref('players/' + uid + '/passXP').on('value', snap => { if (state.dataLoaded) { state.passXP = snap.val() || 0; updatePassUI(); } });
+      db.ref('players/' + uid + '/passLevel').on('value', snap => { if (state.dataLoaded) { state.passLevel = snap.val() || 0; updatePassUI(); } });
 
       loadingScreen.style.opacity = '0';
       setTimeout(() => loadingScreen.classList.add('hidden'), 500);
       document.querySelector('.game-container').style.visibility = 'visible';
       state.dataLoaded = true;
       if (state.production.active) scheduleProductionFinish();
-      setInterval(updateProductionUI, 1000); // обновляем таймер каждую секунду
+      setInterval(updateProductionUI, 1000);
     }).catch(err => {
       console.error(err);
       loadingScreen.classList.add('hidden');
@@ -590,7 +678,12 @@
       leagueBonuses: state.leagueBonuses, hasInsurance: state.hasInsurance,
       creditRating: state.creditRating, production: state.production,
       inventoryComponents: state.inventoryComponents,
-      inventoryItems: state.inventoryItems
+      inventoryItems: state.inventoryItems,
+      inventoryPets: state.inventoryPets,
+      equippedPetIndex: state.equippedPetIndex,
+      passXP: state.passXP,
+      passLevel: state.passLevel,
+      passStartTime: state.passStartTime
     });
   }
 
@@ -632,7 +725,7 @@
       const avatar = getAvatar(id);
       const nm = data ? `Игрок ${id.slice(0,6)}` : 'Неизвестный';
       const en = data ? Math.floor(data.energy) : 0;
-      html += `<div style="margin:8px 0; background:#2d2d44; padding:10px; border-radius:15px; display:flex; justify-content:space-between;">
+      html += `<div class="deal-item" style="display:flex; justify-content:space-between; align-items:center;">
         <span><span class="avatar">${avatar}</span> ${nm} (💎${en})</span>
         <span>
           <button class="modal-btn send-coins-btn" data-friend="${id}">💰</button>
@@ -660,7 +753,7 @@
     if (!entries.length) { listDiv.innerHTML = '<p style="color:#aaa">Нет входящих заявок</p>'; return; }
     let html = '';
     entries.forEach(([fromId]) => {
-      html += `<div style="margin:8px 0; background:#2d2d44; padding:10px; border-radius:15px; display:flex; justify-content:space-between;">
+      html += `<div class="deal-item" style="display:flex; justify-content:space-between; align-items:center;">
         <span>👤 Игрок ${fromId.slice(0,8)}...</span>
         <span>
           <button class="modal-btn accept-request-btn" data-from="${fromId}">✅</button>
@@ -763,7 +856,7 @@
       let html = '';
       Object.entries(data).forEach(([id, pd]) => {
         const en = Math.floor(pd.energy || 0);
-        html += `<div style="margin:8px 0; background:#2d2d44; padding:10px; border-radius:15px; display:flex; justify-content:space-between;">
+        html += `<div class="deal-item" style="display:flex; justify-content:space-between; align-items:center;">
           <span><span class="avatar">${getAvatar(id)}</span> ID: ${id.slice(0,8)}... (💎${en})</span>
           <button class="modal-btn add-friend-list-btn" data-id="${id}">➕</button></div>`;
       });
@@ -790,7 +883,7 @@
       let html = '';
       players.slice(0,10).forEach((p,i) => {
         const league = getLeagueForDisplay(p.energy||0, p.fire||0);
-        html += `<div style="margin:8px 0; background:#2d2d44; padding:10px; border-radius:15px; display:flex; justify-content:space-between;">
+        html += `<div class="deal-item" style="display:flex; justify-content:space-between; align-items:center;">
           <span>${i+1}. <span class="avatar">${getAvatar(p.id)}</span> ${p.id.slice(0,6)}... <span class="league-badge ${league.class}">${league.name}</span></span>
           <span>💎 ${Math.floor(p.energy||0)}</span></div>`;
       });
@@ -819,7 +912,7 @@
     let html = '';
     leagues.forEach(l => {
       const active = (league.name === l.name);
-      html += `<div style="margin:8px 0; padding:10px; border-radius:15px; background:${active?'#2d2d44':'#1a1a2e'}; border:2px solid ${active?'#f9d423':'transparent'}">
+      html += `<div class="deal-item" style="background:${active?'#2d2d44':'#1a1a2e'}; border:2px solid ${active?'#f9d423':'transparent'}">
         <span class="league-badge ${l.class}">${l.name}</span> <span style="color:#aaa;">💎 ${l.minEnergy.toLocaleString()}${l.minFire > 0 ? ` | 🔥 ${l.minFire}` : ''}</span>
         ${active ? '<span style="color:#f9d423; float:right;">✅ Вы здесь</span>' : ''}
         ${active && l.bonus > 0 ? `<div style="font-size:0.8rem; color:#ffd166;">Постоянный бонус к тапу: +${l.bonus}</div>` : ''}
@@ -898,11 +991,17 @@
     e.preventDefault();
     let gained = state.tapPower;
     if (state.boosts.x2) gained *= 2;
+    if (state.equippedPetIndex >= 0 && state.inventoryPets[state.equippedPetIndex]) {
+      const pet = getPetById(state.inventoryPets[state.equippedPetIndex].id);
+      if (pet && pet.buff.tapPower) gained += pet.buff.tapPower;
+      if (pet && pet.buff.critChance && Math.random() < pet.buff.critChance) gained *= state.critMultiplier;
+    }
     if (Math.random() < state.critChance) {
       gained *= state.critMultiplier;
       createParticle(e, `💥 ${gained}`, '#ff4d6d');
     } else createParticle(e, `+${gained}`, '#ffd166');
     state.energy += gained;
+    addPassXP(1);
     updateUI(); savePlayerData();
   }
   function createParticle(e, text, color) {
@@ -912,15 +1011,35 @@
     crystalArea.appendChild(p); setTimeout(() => p.remove(), 800);
   }
 
-  setInterval(() => { if (state.passivePower > 0) { state.energy += state.passivePower; updateUI(); savePlayerData(); } }, 1000);
+  setInterval(() => {
+    if (state.passivePower > 0) {
+      let passiveGain = state.passivePower;
+      if (state.equippedPetIndex >= 0 && state.inventoryPets[state.equippedPetIndex]) {
+        const pet = getPetById(state.inventoryPets[state.equippedPetIndex].id);
+        if (pet && pet.buff.passivePower) passiveGain += pet.buff.passivePower;
+        if (pet && pet.buff.firePerMin) state.fire += pet.buff.firePerMin / 60;
+      }
+      state.energy += passiveGain;
+      addPassXP(Math.floor(passiveGain / 10));
+      updateUI();
+      savePlayerData();
+    }
+  }, 1000);
 
   function startAutoTap() {
     if (state.autoTapInterval) clearInterval(state.autoTapInterval);
     state.autoTapInterval = setInterval(() => {
       let gained = state.tapPower;
       if (state.boosts.x2) gained *= 2;
+      if (state.equippedPetIndex >= 0 && state.inventoryPets[state.equippedPetIndex]) {
+        const pet = getPetById(state.inventoryPets[state.equippedPetIndex].id);
+        if (pet && pet.buff.tapPower) gained += pet.buff.tapPower;
+        if (pet && pet.buff.critChance && Math.random() < pet.buff.critChance) gained *= state.critMultiplier;
+      }
       if (Math.random() < state.critChance) gained *= state.critMultiplier;
-      state.energy += gained; updateUI(); savePlayerData();
+      state.energy += gained;
+      addPassXP(1);
+      updateUI(); savePlayerData();
     }, 350);
   }
   function stopAutoTap() { if (state.autoTapInterval) { clearInterval(state.autoTapInterval); state.autoTapInterval = null; } }
@@ -961,7 +1080,7 @@
     updateFireDisplay();
   }
 
-  // Секретный код (без изменений)
+  // Секретный код
   const SECRET = ['-','.','-','-','.'];
   let gestureStart = null;
   function setupSecretCode() {
@@ -996,7 +1115,7 @@
     } else state.secretCodeProgress = 0;
   }
 
-  // PvP (без изменений)
+  // PvP
   document.getElementById('menuBattle').addEventListener('click', () => {
     document.getElementById('menuModal').classList.add('hidden');
     pvpModal.classList.remove('hidden');
@@ -1129,7 +1248,7 @@
     state.pvp.searching = false; state.pvp.active = false;
   });
 
-  // Банк (без фабрики)
+  // Банк
   document.getElementById('menuBank').addEventListener('click', () => {
     document.getElementById('menuModal').classList.add('hidden');
     bankModal.classList.remove('hidden');
@@ -1180,7 +1299,7 @@
     showToast('Страховка куплена!');
   });
 
-  // Инвестиции (как прежде)
+  // Инвестиции
   document.getElementById('createInvestBtn').addEventListener('click', () => {
     const amount = parseInt(document.getElementById('investAmount').value);
     const percent = parseFloat(document.getElementById('investPercent').value);
@@ -1311,30 +1430,30 @@
   document.getElementById('craftTabBtn').addEventListener('click', () => {
     document.getElementById('craftTabContent').classList.remove('hidden');
     document.getElementById('componentsTabContent').classList.add('hidden');
-    document.getElementById('inventoryTabContent').classList.add('hidden');
+    document.getElementById('factoryInventoryTabContent').classList.add('hidden');
     document.getElementById('craftTabBtn').classList.add('active');
     document.getElementById('componentsTabBtn').classList.remove('active');
-    document.getElementById('inventoryTabBtn').classList.remove('active');
+    document.getElementById('factoryInventoryTabBtn').classList.remove('active');
     loadRecipes();
   });
   document.getElementById('componentsTabBtn').addEventListener('click', () => {
     document.getElementById('craftTabContent').classList.add('hidden');
     document.getElementById('componentsTabContent').classList.remove('hidden');
-    document.getElementById('inventoryTabContent').classList.add('hidden');
+    document.getElementById('factoryInventoryTabContent').classList.add('hidden');
     document.getElementById('componentsTabBtn').classList.add('active');
     document.getElementById('craftTabBtn').classList.remove('active');
-    document.getElementById('inventoryTabBtn').classList.remove('active');
+    document.getElementById('factoryInventoryTabBtn').classList.remove('active');
     loadComponents();
     updateProductionUI();
   });
-  document.getElementById('inventoryTabBtn').addEventListener('click', () => {
+  document.getElementById('factoryInventoryTabBtn').addEventListener('click', () => {
     document.getElementById('craftTabContent').classList.add('hidden');
     document.getElementById('componentsTabContent').classList.add('hidden');
-    document.getElementById('inventoryTabContent').classList.remove('hidden');
-    document.getElementById('inventoryTabBtn').classList.add('active');
+    document.getElementById('factoryInventoryTabContent').classList.remove('hidden');
+    document.getElementById('factoryInventoryTabBtn').classList.add('active');
     document.getElementById('craftTabBtn').classList.remove('active');
     document.getElementById('componentsTabBtn').classList.remove('active');
-    updateInventoryUI();
+    updateFactoryInventoryUI();
   });
 
   function loadRecipes() {
@@ -1360,7 +1479,7 @@
     Object.entries(recipe.components).forEach(([compId, qty]) => { state.inventoryComponents[compId] -= qty; });
     state.inventoryItems.push({ id: Date.now().toString(), type: recipe.result.type, effect: recipe.result.effect || null, amount: recipe.result.amount || 0, name: recipe.name });
     savePlayerData();
-    updateInventoryUI();
+    updateFactoryInventoryUI();
     loadRecipes();
     showToast(`${recipe.name} скрафчен!`);
   }
@@ -1420,12 +1539,12 @@
     state.production = { active: false, endTime: 0, componentId: null };
     savePlayerData();
     updateProductionUI();
-    updateInventoryUI();
+    updateFactoryInventoryUI();
     showToast(`Производство завершено: +1 ${components[compId]?.name}`);
   }
 
-  function updateInventoryUI() {
-    const invDiv = document.getElementById('inventoryItems');
+  function updateFactoryInventoryUI() {
+    const div = document.getElementById('factoryInventoryItems');
     let html = '<h5>Компоненты:</h5>';
     Object.entries(state.inventoryComponents).forEach(([id, qty]) => {
       if (qty > 0) html += `<p>${components[id]?.name}: ${qty}</p>`;
@@ -1435,7 +1554,7 @@
     else state.inventoryItems.forEach((item, i) => {
       html += `<p>${item.name} <button class="modal-btn sell-inv-btn" data-index="${i}">Продать</button> <button class="modal-btn use-inv-btn" data-index="${i}">Использовать</button></p>`;
     });
-    invDiv.innerHTML = html;
+    div.innerHTML = html;
     document.querySelectorAll('.sell-inv-btn').forEach(b => b.addEventListener('click', () => {
       const idx = parseInt(b.dataset.index);
       const item = state.inventoryItems[idx];
@@ -1452,7 +1571,7 @@
       });
       state.inventoryItems.splice(idx, 1);
       savePlayerData();
-      updateInventoryUI();
+      updateFactoryInventoryUI();
       showToast('Предмет выставлен на рынок');
     }));
     document.querySelectorAll('.use-inv-btn').forEach(b => b.addEventListener('click', () => {
@@ -1464,7 +1583,7 @@
       state.inventoryItems.splice(idx, 1);
       savePlayerData();
       updateUI();
-      updateInventoryUI();
+      updateFactoryInventoryUI();
     }));
   }
 
@@ -1530,7 +1649,11 @@
       if (state.energy < listing.price) { showToast('Недостаточно монет'); return; }
       state.energy -= listing.price;
       db.ref('players/' + listing.seller + '/energy').transaction(e => (e || 0) + listing.price);
-      state.inventoryItems.push(listing.item);
+      if (listing.item.type === 'pet') {
+        state.inventoryPets.push(listing.item.pet);
+      } else {
+        state.inventoryItems.push(listing.item);
+      }
       db.ref('market/listings/' + listingId).update({ status: 'sold' });
       savePlayerData();
       updateUI();
@@ -1558,19 +1681,17 @@
     const price = parseInt(document.getElementById('sellPrice').value);
     if (!price || price <= 0) { showToast('Укажите цену'); return; }
     const isAuction = document.getElementById('isAuctionCheckbox').checked;
-    const listingData = {
+    db.ref('market/listings').push({
       seller: state.userId,
       item: item,
       price: price,
       type: isAuction ? 'auction' : 'fixed',
       status: 'active',
-      createdAt: Date.now(),
-      bids: isAuction ? [{ bidder: null, amount: 0 }] : null
-    };
-    db.ref('market/listings').push(listingData).then(() => {
+      createdAt: Date.now()
+    }).then(() => {
       state.inventoryItems.splice(index, 1);
       savePlayerData();
-      updateInventoryUI();
+      updateFactoryInventoryUI();
       updateSellSelect();
       document.getElementById('sellPrice').value = '';
       showToast('Лот выставлен');
@@ -1596,12 +1717,215 @@
           db.ref('market/listings/' + listingId).update({ status: 'cancelled' });
           state.inventoryItems.push(data[listingId].item);
           savePlayerData();
-          updateInventoryUI();
+          updateFactoryInventoryUI();
           loadMyListings();
           showToast('Лот отменён');
         }
       }));
     });
+  }
+
+  // Инвентарь
+  document.getElementById('menuInventory').addEventListener('click', () => {
+    document.getElementById('menuModal').classList.add('hidden');
+    document.getElementById('inventoryModal').classList.remove('hidden');
+    document.getElementById('invItemsTab').click();
+  });
+  document.getElementById('closeInventoryBtn').addEventListener('click', () => document.getElementById('inventoryModal').classList.add('hidden'));
+
+  document.getElementById('invItemsTab').addEventListener('click', () => {
+    document.getElementById('invItemsContent').classList.remove('hidden');
+    document.getElementById('invPetsContent').classList.add('hidden');
+    document.getElementById('invResourcesContent').classList.add('hidden');
+    document.getElementById('invItemsTab').classList.add('active');
+    document.getElementById('invPetsTab').classList.remove('active');
+    document.getElementById('invResourcesTab').classList.remove('active');
+    renderInventoryItems();
+  });
+  document.getElementById('invPetsTab').addEventListener('click', () => {
+    document.getElementById('invItemsContent').classList.add('hidden');
+    document.getElementById('invPetsContent').classList.remove('hidden');
+    document.getElementById('invResourcesContent').classList.add('hidden');
+    document.getElementById('invPetsTab').classList.add('active');
+    document.getElementById('invItemsTab').classList.remove('active');
+    document.getElementById('invResourcesTab').classList.remove('active');
+    renderInventoryPets();
+  });
+  document.getElementById('invResourcesTab').addEventListener('click', () => {
+    document.getElementById('invItemsContent').classList.add('hidden');
+    document.getElementById('invPetsContent').classList.add('hidden');
+    document.getElementById('invResourcesContent').classList.remove('hidden');
+    document.getElementById('invResourcesTab').classList.add('active');
+    document.getElementById('invItemsTab').classList.remove('active');
+    document.getElementById('invPetsTab').classList.remove('active');
+    renderInventoryResources();
+  });
+
+  function renderInventoryItems() {
+    const div = document.getElementById('invItemsContent');
+    let html = '';
+    state.inventoryItems.forEach((item, i) => {
+      html += `<div class="deal-item">
+        <p><b>${item.name}</b> (${item.type}) 
+        <button class="modal-btn sell-inv-btn" data-index="${i}">Продать</button>
+        <button class="modal-btn use-inv-btn" data-index="${i}">Использовать</button></p>
+      </div>`;
+    });
+    div.innerHTML = html || '<p>Пусто</p>';
+    document.querySelectorAll('.sell-inv-btn').forEach(b => b.addEventListener('click', () => {
+      const idx = parseInt(b.dataset.index);
+      const item = state.inventoryItems[idx];
+      if (!item) return;
+      const price = prompt('Цена продажи (💎):');
+      if (!price || isNaN(price) || price <= 0) return;
+      db.ref('market/listings').push({
+        seller: state.userId,
+        item: item,
+        price: parseInt(price),
+        type: 'fixed',
+        status: 'active',
+        createdAt: Date.now()
+      });
+      state.inventoryItems.splice(idx, 1);
+      savePlayerData();
+      renderInventoryItems();
+      showToast('Предмет выставлен на рынок');
+    }));
+    document.querySelectorAll('.use-inv-btn').forEach(b => b.addEventListener('click', () => {
+      const idx = parseInt(b.dataset.index);
+      const item = state.inventoryItems[idx];
+      if (!item) return;
+      if (item.type === 'boost') activateBoost(item.effect);
+      else if (item.type === 'fire') { state.fire += item.amount; showToast(`+${item.amount}🔥`); }
+      state.inventoryItems.splice(idx, 1);
+      savePlayerData();
+      updateUI();
+      renderInventoryItems();
+    }));
+  }
+
+  function renderInventoryPets() {
+    const div = document.getElementById('invPetsContent');
+    let html = '';
+    state.inventoryPets.forEach((pet, i) => {
+      const petConfig = getPetById(pet.id);
+      if (!petConfig) return;
+      html += `<div class="deal-item">
+        <p><span class="rarity-${petConfig.rarity}">${petConfig.emoji} ${petConfig.name} (${petConfig.rarity})</span>
+        <button class="modal-btn equip-pet-btn" data-index="${i}">${i === state.equippedPetIndex ? 'Снять' : 'Экипировать'}</button>
+        <button class="modal-btn sell-pet-btn" data-index="${i}">Продать</button></p>
+      </div>`;
+    });
+    div.innerHTML = html || '<p>Нет питомцев</p>';
+    document.querySelectorAll('.equip-pet-btn').forEach(b => b.addEventListener('click', () => {
+      const idx = parseInt(b.dataset.index);
+      if (state.equippedPetIndex === idx) {
+        state.equippedPetIndex = -1;
+      } else {
+        state.equippedPetIndex = idx;
+      }
+      savePlayerData();
+      updateEquippedPet();
+      renderInventoryPets();
+    }));
+    document.querySelectorAll('.sell-pet-btn').forEach(b => b.addEventListener('click', () => {
+      const idx = parseInt(b.dataset.index);
+      if (state.equippedPetIndex === idx) state.equippedPetIndex = -1;
+      const pet = state.inventoryPets[idx];
+      const price = prompt('Цена продажи питомца (💎):');
+      if (!price || isNaN(price) || price <= 0) return;
+      db.ref('market/listings').push({
+        seller: state.userId,
+        item: { type: 'pet', pet: pet, name: getPetById(pet.id)?.name || 'Питомец' },
+        price: parseInt(price),
+        type: 'fixed',
+        status: 'active',
+        createdAt: Date.now()
+      });
+      state.inventoryPets.splice(idx, 1);
+      if (state.equippedPetIndex >= state.inventoryPets.length) state.equippedPetIndex = -1;
+      savePlayerData();
+      updateEquippedPet();
+      renderInventoryPets();
+      showToast('Питомец выставлен на рынок');
+    }));
+  }
+
+  function renderInventoryResources() {
+    const div = document.getElementById('invResourcesContent');
+    let html = '';
+    Object.entries(state.inventoryComponents).forEach(([id, qty]) => {
+      if (qty > 0) html += `<p>${components[id]?.name || id}: ${qty}</p>`;
+    });
+    div.innerHTML = html || '<p>Нет ресурсов</p>';
+  }
+
+  // Crystal Pass
+  function addPassXP(amount) {
+    if (Date.now() - state.passStartTime > PASS_DURATION_DAYS * 24 * 60 * 60 * 1000) {
+      state.passLevel = 0;
+      state.passXP = 0;
+      state.passStartTime = Date.now();
+      showToast('Crystal Pass сброшен! Новый сезон начался.');
+    }
+    state.passXP += amount;
+    while (state.passXP >= PASS_XP_PER_LEVEL && state.passLevel < PASS_MAX_LEVEL) {
+      state.passXP -= PASS_XP_PER_LEVEL;
+      state.passLevel++;
+      const reward = getPassReward(state.passLevel);
+      if (reward.type === '💎') {
+        state.energy += reward.amount;
+      } else if (reward.type === '🔥') {
+        state.fire += reward.amount;
+      } else if (reward.type === 'pet') {
+        const pet = getPetById(reward.petId);
+        if (pet) {
+          state.inventoryPets.push({ id: pet.id, acquiredAt: Date.now() });
+          showToast(`Получен питомец: ${pet.name} (${pet.rarity})`);
+        }
+      }
+      savePlayerData();
+      updateUI();
+    }
+    updatePassUI();
+  }
+
+  function updatePassUI() {
+    passLevelDisplay.textContent = state.passLevel + 1;
+    const progressPercent = Math.min(100, (state.passXP / PASS_XP_PER_LEVEL) * 100);
+    passProgressFill.style.width = progressPercent + '%';
+    passXpDisplay.textContent = `${state.passXP} / ${PASS_XP_PER_LEVEL} XP`;
+    const nextReward = getPassReward(state.passLevel);
+    let rewardText = 'Следующая награда: ';
+    if (nextReward.type === '💎') rewardText += `${nextReward.amount} 💎`;
+    else if (nextReward.type === '🔥') rewardText += `${nextReward.amount} 🔥`;
+    else if (nextReward.type === 'pet') {
+      const pet = getPetById(nextReward.petId);
+      rewardText += `Питомец ${pet.name} (${pet.rarity})`;
+    }
+    passRewardDisplay.textContent = rewardText;
+  }
+
+  document.getElementById('menuPass').addEventListener('click', () => {
+    document.getElementById('menuModal').classList.add('hidden');
+    document.getElementById('passModal').classList.remove('hidden');
+    updatePassUI();
+  });
+  document.getElementById('closePassBtn').addEventListener('click', () => document.getElementById('passModal').classList.add('hidden'));
+
+  // Питомцы
+  function updateEquippedPet() {
+    if (state.equippedPetIndex >= 0 && state.equippedPetIndex < state.inventoryPets.length) {
+      const pet = state.inventoryPets[state.equippedPetIndex];
+      const petConfig = getPetById(pet.id);
+      if (petConfig) {
+        petDisplay.textContent = petConfig.emoji;
+        petDisplay.classList.remove('hidden');
+      }
+    } else {
+      petDisplay.textContent = '';
+      petDisplay.classList.add('hidden');
+    }
   }
 
   // Меню и основные обработчики
