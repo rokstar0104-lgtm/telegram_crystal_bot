@@ -1667,12 +1667,21 @@
           const updates = {};
           updates['market/listings/' + id + '/status'] = 'sold';
           updates['players/' + listing.seller + '/energy'] = firebase.database.ServerValue.increment(listing.currentBid);
+          // Передаём предмет
           if (listing.item.type === 'pet') {
-            updates['players/' + listing.currentBidder + '/inventoryPets'] = firebase.database.ServerValue.arrayUnion(listing.item.pet);
+            db.ref('players/' + listing.currentBidder + '/inventoryPets').once('value').then(snap => {
+              const pets = snap.val() || [];
+              pets.push(listing.item.pet);
+              db.ref('players/' + listing.currentBidder + '/inventoryPets').set(pets);
+            });
           } else if (listing.item.type === 'resource') {
-            updates['players/' + listing.currentBidder + '/inventoryComponents/' + listing.item.compId] = firebase.database.ServerValue.increment(1);
+            db.ref('players/' + listing.currentBidder + '/inventoryComponents/' + listing.item.compId).transaction(val => (val || 0) + 1);
           } else {
-            updates['players/' + listing.currentBidder + '/inventoryItems'] = firebase.database.ServerValue.arrayUnion(listing.item);
+            db.ref('players/' + listing.currentBidder + '/inventoryItems').once('value').then(snap => {
+              const items = snap.val() || [];
+              items.push(listing.item);
+              db.ref('players/' + listing.currentBidder + '/inventoryItems').set(items);
+            });
           }
           db.ref().update(updates);
         }
@@ -2151,22 +2160,24 @@
       showToast('Нельзя ввести собственный код');
       return;
     }
-    db.ref('players/' + code).once('value').then(snap => {
-      if (!snap.exists()) {
+    db.ref('players').orderByChild('referralCode').equalTo(code).once('value').then(snap => {
+      const result = snap.val();
+      if (!result) {
         showToast('Код не найден');
         return;
       }
+      const inviterId = Object.keys(result)[0];
       const bonus = 52000;
       state.energy += bonus;
       state.totalEarned += bonus;
       state.enteredReferralCode = true;
-      state.referredBy = code;
-      db.ref('players/' + code + '/energy').transaction(e => (e || 0) + bonus);
-      db.ref('players/' + code + '/totalEarned').transaction(e => (e || 0) + bonus);
-      db.ref('players/' + code + '/referrals').once('value').then(refSnap => {
+      state.referredBy = inviterId;
+      db.ref('players/' + inviterId + '/energy').transaction(e => (e || 0) + bonus);
+      db.ref('players/' + inviterId + '/totalEarned').transaction(e => (e || 0) + bonus);
+      db.ref('players/' + inviterId + '/referrals').once('value').then(refSnap => {
         const refs = refSnap.val() || [];
         refs.push(state.userId);
-        db.ref('players/' + code + '/referrals').set(refs);
+        db.ref('players/' + inviterId + '/referrals').set(refs);
       });
       savePlayerData();
       updateUI();
