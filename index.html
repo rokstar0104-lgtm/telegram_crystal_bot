@@ -60,6 +60,13 @@
       backdrop-filter:blur(5px); color:#aaa; letter-spacing:0.5px;
       cursor:pointer; user-select:all; border:1px solid rgba(157,78,221,0.3);
     }
+    .profile-avatar-btn {
+      background:rgba(0,0,0,0.4); border-radius:50%; width:40px; height:40px;
+      display:flex; align-items:center; justify-content:center; font-size:1.5rem;
+      cursor:pointer; border:1px solid rgba(157,78,221,0.4); backdrop-filter:blur(5px);
+      box-shadow:0 0 15px rgba(114,9,183,0.5); transition:0.2s;
+    }
+    .profile-avatar-btn:active { transform:scale(0.9); }
     .crystal-area { position:relative; display:flex; justify-content:center; align-items:center; margin:15px 0; }
     .crystal {
       width:150px; height:150px;
@@ -209,6 +216,7 @@
 
 <div class="game-container" style="visibility:hidden;">
   <div class="header">
+    <div class="profile-avatar-btn" id="profileAvatarBtn">👤</div>
     <div class="score-box"><span class="score-icon">💎</span><span class="score-text" id="scoreDisplay">0</span></div>
     <div class="fire-badge" id="fireBadge">🔥 <span id="fireAmount">0</span></div>
     <div class="id-badge" id="playerIdDisplay">ID: ...</div>
@@ -419,6 +427,28 @@
   </div>
 </div>
 
+<div id="profileModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>👤 Профиль</h3>
+    <div style="text-align:center; font-size:3rem;" id="profileAvatarLarge"></div>
+    <p><b>ID:</b> <span id="profileId"></span></p>
+    <p><b>Лига:</b> <span id="profileLeague"></span></p>
+    <p><b>Баланс:</b> 💎 <span id="profileBalance"></span> | 🔥 <span id="profileFire"></span></p>
+    <p><b>Всего собрано:</b> 💎 <span id="profileTotalEarned"></span></p>
+    <p><b>Пасс:</b> Ур. <span id="profilePassLevel"></span></p>
+    <p><b>Друзей:</b> <span id="profileFriendsCount"></span></p>
+    <p><b>Рейтинг:</b> <span id="profileCredit"></span></p>
+    <h4>🔗 Реферальная система</h4>
+    <p><b>Твой код:</b> <span id="profileReferralCode" style="user-select:all; background:#2d2d44; padding:4px 10px; border-radius:10px;"></span></p>
+    <input type="text" class="modal-input" id="referralInput" placeholder="Введите реферальный код">
+    <button class="modal-btn" id="submitReferralBtn">Ввести</button>
+    <p id="referralMessage" style="margin-top:5px; font-size:0.8rem;"></p>
+    <h4>👥 Твои рефералы (<span id="referralCount">0</span>)</h4>
+    <div id="referralList" style="max-height:120px; overflow-y:auto;"></div>
+    <button class="modal-btn" id="closeProfileBtn" style="margin-top:10px;">Закрыть</button>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -468,6 +498,12 @@
     passXP: 0,
     passLevel: 0,
     passStartTime: Date.now(),
+    totalEarned: 0,
+    referralCode: '',
+    referredBy: null,
+    referrals: [],
+    enteredReferralCode: false,
+    referralAttemptCount: 0,
     pvp: {
       active: false, searching: false, opponent: null, gameId: null,
       myScore: 0, opponentScore: 0, timer: 60, interval: null, fruitInterval: null,
@@ -558,6 +594,23 @@
   const passXpDisplay = document.getElementById('passXpDisplay');
   const passRewardsList = document.getElementById('passRewardsList');
   const storyHint = document.getElementById('storyHint');
+  const profileAvatarBtn = document.getElementById('profileAvatarBtn');
+  const profileModal = document.getElementById('profileModal');
+  const profileIdSpan = document.getElementById('profileId');
+  const profileLeagueSpan = document.getElementById('profileLeague');
+  const profileBalanceSpan = document.getElementById('profileBalance');
+  const profileFireSpan = document.getElementById('profileFire');
+  const profileTotalEarnedSpan = document.getElementById('profileTotalEarned');
+  const profilePassLevelSpan = document.getElementById('profilePassLevel');
+  const profileFriendsCountSpan = document.getElementById('profileFriendsCount');
+  const profileCreditSpan = document.getElementById('profileCredit');
+  const profileReferralCodeSpan = document.getElementById('profileReferralCode');
+  const referralInput = document.getElementById('referralInput');
+  const submitReferralBtn = document.getElementById('submitReferralBtn');
+  const referralMessage = document.getElementById('referralMessage');
+  const referralCountSpan = document.getElementById('referralCount');
+  const referralListDiv = document.getElementById('referralList');
+  const profileAvatarLarge = document.getElementById('profileAvatarLarge');
 
   function showToast(text, color = '#f9d423') {
     const toast = document.getElementById('toast');
@@ -623,8 +676,17 @@
         state.passXP = data.passXP || 0;
         state.passLevel = data.passLevel || 0;
         state.passStartTime = data.passStartTime || Date.now();
+        state.totalEarned = data.totalEarned || 0;
+        state.referralCode = data.referralCode || uid.slice(0,8);
+        state.referredBy = data.referredBy || null;
+        state.referrals = data.referrals || [];
+        state.enteredReferralCode = data.enteredReferralCode || false;
+        state.referralAttemptCount = data.referralAttemptCount || 0;
         if (data.friends) state.friends = Object.keys(data.friends);
-      } else savePlayerData();
+      } else {
+        state.referralCode = uid.slice(0,8);
+        savePlayerData();
+      }
 
       applySkin(state.currentSkin);
       updateUI();
@@ -638,6 +700,7 @@
       updateEquippedPet();
       updatePassUI();
       updateStory();
+      profileAvatarBtn.textContent = getAvatar(uid);
 
       db.ref('players/' + uid + '/energy').on('value', snap => { if (state.dataLoaded) { state.energy = snap.val() || 0; updateUI(); } });
       db.ref('players/' + uid + '/fire').on('value', snap => { if (state.dataLoaded) { state.fire = snap.val() || 0; updateFireDisplay(); updateUI(); } });
@@ -660,6 +723,10 @@
       });
       db.ref('players/' + uid + '/passXP').on('value', snap => { if (state.dataLoaded) { state.passXP = snap.val() || 0; updatePassUI(); } });
       db.ref('players/' + uid + '/passLevel').on('value', snap => { if (state.dataLoaded) { state.passLevel = snap.val() || 0; updatePassUI(); } });
+      db.ref('players/' + uid + '/totalEarned').on('value', snap => { if (state.dataLoaded) { state.totalEarned = snap.val() || 0; } });
+      db.ref('players/' + uid + '/referrals').on('value', snap => {
+        if (state.dataLoaded) { state.referrals = snap.val() || []; updateProfileUI(); }
+      });
 
       loadingScreen.style.opacity = '0';
       setTimeout(() => loadingScreen.classList.add('hidden'), 600);
@@ -691,7 +758,13 @@
       equippedPetIndex: state.equippedPetIndex,
       passXP: state.passXP,
       passLevel: state.passLevel,
-      passStartTime: state.passStartTime
+      passStartTime: state.passStartTime,
+      totalEarned: state.totalEarned,
+      referralCode: state.referralCode,
+      referredBy: state.referredBy,
+      referrals: state.referrals,
+      enteredReferralCode: state.enteredReferralCode,
+      referralAttemptCount: state.referralAttemptCount
     });
   }
 
@@ -708,7 +781,6 @@
     }
   }
 
-  // Копирование ID
   let idTapTimer = null;
   playerIdDisplay.addEventListener('click', () => {
     if (idTapTimer) { clearTimeout(idTapTimer); idTapTimer = null; navigator.clipboard.writeText(state.userId).then(() => showToast('ID скопирован!')); }
@@ -720,7 +792,6 @@
     else idTapTimer = setTimeout(() => { idTapTimer = null; }, 400);
   });
 
-  // Друзья
   function listenToFriends(uid) {
     db.ref('players/' + uid + '/friends').on('value', snap => {
       state.friends = snap.val() ? Object.keys(snap.val()) : [];
@@ -861,7 +932,6 @@
   document.getElementById('closeFriendsBtn').addEventListener('click', () => friendsModal.classList.add('hidden'));
   document.getElementById('closeChatBtn').addEventListener('click', () => chatModal.classList.add('hidden'));
 
-  // Меню
   document.getElementById('menuFriends').addEventListener('click', () => {
     document.getElementById('menuModal').classList.add('hidden');
     friendsModal.classList.remove('hidden');
@@ -942,7 +1012,6 @@
     div.innerHTML = html;
   }
 
-  // Скины
   function applySkin(skin) {
     state.currentSkin = skin;
     switch(skin) {
@@ -976,7 +1045,6 @@
 
   skinOptions.forEach(opt => opt.addEventListener('click', () => { applySkin(opt.dataset.skin); savePlayerData(); }));
 
-  // Бусты
   function canUseBoost(type) {
     const now = Date.now(), cd = 10*60*1000;
     return type === 'x2' ? (now - state.lastX2Used) >= cd : (now - state.lastAutoTapUsed) >= cd;
@@ -1007,7 +1075,6 @@
     }
   }
 
-  // Тапы и механики
   function handleTap(e) {
     e.preventDefault();
     let gained = state.tapPower;
@@ -1022,6 +1089,7 @@
       createParticle(e, `💥 ${gained}`, '#ff4d6d');
     } else createParticle(e, `+${gained}`, '#ffd166');
     state.energy += gained;
+    state.totalEarned += gained;
     addPassXP(1);
     updateUI(); savePlayerData();
     updateStory();
@@ -1042,6 +1110,7 @@
         if (pet && pet.buff.firePerMin) state.fire += pet.buff.firePerMin / 60;
       }
       state.energy += passiveGain;
+      state.totalEarned += passiveGain;
       addPassXP(Math.floor(passiveGain / 10));
       updateUI();
       savePlayerData();
@@ -1060,6 +1129,7 @@
       }
       if (Math.random() < state.critChance) gained *= state.critMultiplier;
       state.energy += gained;
+      state.totalEarned += gained;
       addPassXP(1);
       updateUI(); savePlayerData();
     }, 350);
@@ -1102,7 +1172,6 @@
     updateFireDisplay();
   }
 
-  // Секретный код
   const SECRET = ['-','.','-','-','.'];
   let gestureStart = null;
   function setupSecretCode() {
@@ -1130,7 +1199,7 @@
     if (gesture === SECRET[state.secretCodeProgress]) {
       state.secretCodeProgress++;
       if (state.secretCodeProgress === SECRET.length) {
-        state.energy += 50000; state.secretCodeUsed = true;
+        state.energy += 50000; state.totalEarned += 50000; state.secretCodeUsed = true;
         savePlayerData(); updateUI(); disableSecretCode();
         showToast('🎉 Древний шифр принят! +50 000 монет.', '#c77dff');
         updateStory();
@@ -1324,7 +1393,6 @@
     showToast('Страховка куплена!');
   });
 
-  // Инвестиции
   document.getElementById('createInvestBtn').addEventListener('click', () => {
     const amount = parseInt(document.getElementById('investAmount').value);
     const percent = parseFloat(document.getElementById('investPercent').value);
@@ -1553,7 +1621,7 @@
     showToast(`Производство завершено: +1 ${components[compId]?.name}`);
   }
 
-  // Рынок (полностью переработан)
+  // Рынок
   document.getElementById('menuMarket').addEventListener('click', () => {
     document.getElementById('menuModal').classList.add('hidden');
     marketModal.classList.remove('hidden');
@@ -1594,7 +1662,6 @@
     db.ref('market/listings').on('value', snap => {
       const data = snap.val() || {};
       const now = Date.now();
-      // Автозавершение аукционов
       Object.entries(data).forEach(([id, listing]) => {
         if (listing.status === 'active' && listing.type === 'auction' && listing.endTime && listing.endTime < now && listing.currentBidder) {
           const updates = {};
@@ -1788,7 +1855,6 @@
         if (confirm('Отменить лот?')) {
           const listingData = data[listingId];
           db.ref('market/listings/' + listingId).update({ status: 'cancelled' });
-          // Возврат предмета
           if (listingData.item.type === 'pet') {
             state.inventoryPets.push(listingData.item.pet);
           } else if (listingData.item.type === 'resource') {
@@ -1803,7 +1869,7 @@
     });
   }
 
-  // Инвентарь (без изменений, но с показом баффов питомцев)
+  // Инвентарь
   document.getElementById('menuInventory').addEventListener('click', () => {
     document.getElementById('menuModal').classList.add('hidden');
     document.getElementById('inventoryModal').classList.remove('hidden');
@@ -2021,6 +2087,93 @@
       petDisplay.classList.add('hidden');
     }
   }
+
+  // Профиль
+  profileAvatarBtn.addEventListener('click', () => {
+    updateProfileUI();
+    profileModal.classList.remove('hidden');
+  });
+  document.getElementById('closeProfileBtn').addEventListener('click', () => profileModal.classList.add('hidden'));
+
+  function updateProfileUI() {
+    const avatar = getAvatar(state.userId);
+    profileAvatarLarge.textContent = avatar;
+    profileAvatarBtn.textContent = avatar;
+    profileIdSpan.textContent = state.userId ? state.userId.slice(0,8) + '...' : '';
+    const league = getCurrentLeague();
+    profileLeagueSpan.textContent = league.name;
+    profileBalanceSpan.textContent = Math.floor(state.energy);
+    profileFireSpan.textContent = state.fire.toFixed(1);
+    profileTotalEarnedSpan.textContent = Math.floor(state.totalEarned);
+    profilePassLevelSpan.textContent = state.passLevel + 1;
+    profileFriendsCountSpan.textContent = state.friends.length;
+    profileCreditSpan.textContent = state.creditRating;
+    profileReferralCodeSpan.textContent = state.referralCode || state.userId;
+    referralCountSpan.textContent = state.referrals.length;
+    renderReferralList();
+  }
+
+  function renderReferralList() {
+    if (!state.referrals.length) {
+      referralListDiv.innerHTML = '<p style="color:#aaa">Нет рефералов</p>';
+      return;
+    }
+    let html = '';
+    state.referrals.forEach(refId => {
+      db.ref('players/' + refId).once('value').then(snap => {
+        const data = snap.val();
+        const name = data ? `Игрок ${refId.slice(0,6)}` : 'Неизвестный';
+        html += `<div>👤 ${name}</div>`;
+        referralListDiv.innerHTML = html;
+      });
+    });
+  }
+
+  submitReferralBtn.addEventListener('click', () => {
+    const code = referralInput.value.trim();
+    if (!code) { showToast('Введите код'); return; }
+    if (state.totalEarned > 50000) {
+      state.referralAttemptCount++;
+      if (state.referralAttemptCount === 1) {
+        showToast('Извини, ты уже не новичок');
+        referralMessage.textContent = 'Извини, ты уже не новичок';
+      } else {
+        showToast('Хорошая попытка ^-^');
+        referralMessage.textContent = 'Хорошая попытка ^-^';
+      }
+      return;
+    }
+    if (state.enteredReferralCode) {
+      showToast('Ты уже вводил реферальный код');
+      return;
+    }
+    if (code === state.referralCode) {
+      showToast('Нельзя ввести собственный код');
+      return;
+    }
+    db.ref('players/' + code).once('value').then(snap => {
+      if (!snap.exists()) {
+        showToast('Код не найден');
+        return;
+      }
+      const bonus = 52000;
+      state.energy += bonus;
+      state.totalEarned += bonus;
+      state.enteredReferralCode = true;
+      state.referredBy = code;
+      db.ref('players/' + code + '/energy').transaction(e => (e || 0) + bonus);
+      db.ref('players/' + code + '/totalEarned').transaction(e => (e || 0) + bonus);
+      db.ref('players/' + code + '/referrals').once('value').then(refSnap => {
+        const refs = refSnap.val() || [];
+        refs.push(state.userId);
+        db.ref('players/' + code + '/referrals').set(refs);
+      });
+      savePlayerData();
+      updateUI();
+      updateProfileUI();
+      showToast('Код принят! Вы и друг получили 52000 💎');
+    });
+  });
 
   // Меню и основные обработчики
   document.getElementById('openMenuBtn').addEventListener('click', () => document.getElementById('menuModal').classList.remove('hidden'));
