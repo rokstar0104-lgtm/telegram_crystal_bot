@@ -2,155 +2,162 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, shrink-to-fit=no">
-  <title>Crystal Tap – Полная версия</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, shrink-to-fit=no, viewport-fit=cover">
+  <title>Crystal Tap – Пробуждение</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
       font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 100%);
+      background: radial-gradient(circle at center, #0f0f1a 0%, #050510 100%);
       min-height:100vh; display:flex; justify-content:center; align-items:center;
       touch-action:manipulation; user-select:none;
-      -webkit-tap-highlight-color:transparent; color:#fff; padding:10px;
+      -webkit-tap-highlight-color:transparent; color:#fff; padding:8px;
     }
     #loadingScreen {
       position:fixed; top:0; left:0; width:100%; height:100%;
-      background:#0f0f1a; display:flex; flex-direction:column;
+      background: radial-gradient(ellipse at center, #1a1a2e 0%, #050510 100%);
+      display:flex; flex-direction:column;
       justify-content:center; align-items:center; z-index:9999;
-      transition: opacity 0.5s;
+      transition: opacity 0.8s;
     }
     .loader {
-      width:60px; height:60px; border:6px solid rgba(255,255,255,0.2);
-      border-top-color:#f9d423; border-radius:50%;
-      animation: spin 1s linear infinite; margin-bottom:20px;
+      width:70px; height:70px; border:6px solid rgba(255,255,255,0.1);
+      border-top-color:#f9d423; border-right-color:#9d4edd;
+      border-radius:50%;
+      animation: spin 1.5s linear infinite, glowPulse 2s infinite alternate;
+      margin-bottom:25px;
     }
     @keyframes spin { to { transform:rotate(360deg); } }
-    .loading-text { color:#aaa; font-size:1.2rem; }
+    @keyframes glowPulse { 0% { box-shadow:0 0 10px #9d4edd; } 100% { box-shadow:0 0 30px #f9d423, 0 0 60px #9d4edd; } }
+    .loading-text { color:#c77dff; font-size:1.2rem; letter-spacing:2px; text-shadow:0 0 10px #9d4edd; animation: fadeText 2s infinite; }
+    @keyframes fadeText { 0%,100% { opacity:0.7; } 50% { opacity:1; } }
+    .loading-subtitle { color:#666; font-size:0.8rem; margin-top:10px; font-style:italic; }
     .game-container {
-      width:100%; max-width:460px;
-      background:rgba(255,255,255,0.05); backdrop-filter:blur(15px);
-      border-radius:40px; padding:20px 20px 30px;
-      box-shadow:0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1);
-      display:flex; flex-direction:column; align-items:center; gap:20px;
+      width:100%; max-width:440px;
+      background:rgba(255,255,255,0.03); backdrop-filter:blur(20px);
+      border-radius:35px; padding:15px 15px 25px;
+      box-shadow:0 30px 50px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.08);
+      display:flex; flex-direction:column; align-items:center; gap:15px;
       position:relative;
     }
-    .header { display:flex; justify-content:space-between; align-items:center; width:100%; padding:0 5px; }
+    .header { display:flex; justify-content:space-between; align-items:center; width:100%; padding:0 5px; flex-wrap:wrap; gap:8px; }
     .score-box {
-      background:rgba(0,0,0,0.4); border-radius:50px; padding:8px 18px;
-      backdrop-filter:blur(10px); box-shadow:0 4px 15px rgba(0,0,0,0.3);
-      display:flex; align-items:center; gap:8px; font-size:1.2rem;
+      background:rgba(0,0,0,0.5); border-radius:40px; padding:6px 16px;
+      backdrop-filter:blur(10px); box-shadow:0 4px 15px rgba(0,0,0,0.5), inset 0 0 15px rgba(157,78,221,0.3);
+      display:flex; align-items:center; gap:6px; font-size:1.1rem;
     }
-    .score-icon { font-size:1.4rem; }
+    .score-icon { font-size:1.3rem; }
     .score-text {
-      font-size:1.8rem; font-weight:bold;
+      font-size:1.6rem; font-weight:bold;
       background:linear-gradient(135deg, #f9d423, #ff4e50);
       -webkit-background-clip:text; -webkit-text-fill-color:transparent;
       background-clip:text;
     }
     .fire-badge {
-      background:rgba(255,100,0,0.3); border-radius:30px; padding:6px 14px;
-      font-weight:bold; font-size:0.9rem; backdrop-filter:blur(5px);
+      background:rgba(255,100,0,0.3); border-radius:30px; padding:4px 12px;
+      font-weight:bold; font-size:0.85rem; backdrop-filter:blur(5px);
       color:#ffaa00; letter-spacing:0.5px; display:none;
     }
     .id-badge {
-      background:rgba(255,255,255,0.15); border-radius:30px;
-      padding:6px 14px; font-weight:bold; font-size:0.8rem;
-      backdrop-filter:blur(5px); color:#ddd; letter-spacing:0.5px;
-      cursor:pointer; user-select:all;
+      background:rgba(255,255,255,0.1); border-radius:30px;
+      padding:4px 12px; font-weight:bold; font-size:0.75rem;
+      backdrop-filter:blur(5px); color:#aaa; letter-spacing:0.5px;
+      cursor:pointer; user-select:all; border:1px solid rgba(157,78,221,0.3);
     }
-    .crystal-area { position:relative; display:flex; justify-content:center; align-items:center; margin:20px 0; }
+    .crystal-area { position:relative; display:flex; justify-content:center; align-items:center; margin:15px 0; }
     .crystal {
-      width:160px; height:160px;
-      background:radial-gradient(circle at 30% 30%, #c77dff, #5a189a);
-      border-radius:40% 60% 45% 55% / 50% 45% 55% 50%;
-      box-shadow:0 0 60px #9d4edd, 0 0 120px rgba(157,78,221,0.5);
-      cursor:pointer; transition:transform 0.08s ease, box-shadow 0.2s;
-      animation: float 4s ease-in-out infinite, glowPulse 2.5s infinite alternate;
+      width:150px; height:150px;
+      background:radial-gradient(circle at 35% 35%, #c77dff, #3a0ca3);
+      border-radius:45% 55% 40% 60% / 55% 40% 60% 45%;
+      box-shadow:0 0 70px #7209b7, 0 0 140px rgba(114,9,183,0.6);
+      cursor:pointer; transition:transform 0.08s ease, box-shadow 0.3s;
+      animation: float 4s ease-in-out infinite, crystalGlow 3s infinite alternate;
       display:flex; justify-content:center; align-items:center;
-      font-size:3.5rem; color:rgba(255,255,255,0.9);
-      text-shadow:0 0 20px white; position:relative; z-index:2;
+      font-size:3.2rem; color:rgba(255,255,255,0.95);
+      text-shadow:0 0 25px white; position:relative; z-index:2;
     }
-    .crystal:active { transform:scale(0.9); box-shadow:0 0 100px #e0aaff, 0 0 180px rgba(224,170,255,0.8); }
-    @keyframes float { 0%,100% { transform:translateY(0px); } 50% { transform:translateY(-10px); } }
-    @keyframes glowPulse { 0% { box-shadow:0 0 40px #9d4edd, 0 0 100px rgba(157,78,221,0.4); } 100% { box-shadow:0 0 80px #c77dff, 0 0 150px rgba(199,125,255,0.7); } }
+    .crystal:active { transform:scale(0.92); box-shadow:0 0 120px #f9d423, 0 0 200px rgba(249,212,35,0.8); }
+    @keyframes float { 0%,100% { transform:translateY(0px); } 50% { transform:translateY(-8px); } }
+    @keyframes crystalGlow { 0% { box-shadow:0 0 60px #7209b7, 0 0 120px rgba(114,9,183,0.5); } 100% { box-shadow:0 0 90px #c77dff, 0 0 160px rgba(199,125,255,0.7); } }
     .pet-display {
-      position:absolute; bottom:-10px; right:-30px;
-      font-size:3rem; z-index:3; animation: petFloat 3s ease-in-out infinite;
-      filter: drop-shadow(0 0 10px rgba(255,215,0,0.7));
+      position:absolute; bottom:-10px; right:-25px;
+      font-size:2.8rem; z-index:3; animation: petFloat 3s ease-in-out infinite;
+      filter: drop-shadow(0 0 12px rgba(249,212,35,0.8));
     }
-    @keyframes petFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
+    @keyframes petFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
     .particle {
-      position:absolute; pointer-events:none; font-weight:bold; color:#ffd166;
-      font-size:1.2rem; text-shadow:0 0 10px #ffaa00;
-      animation: rise 0.8s ease-out forwards; z-index:10;
+      position:absolute; pointer-events:none; font-weight:bold; color:#f9d423;
+      font-size:1.3rem; text-shadow:0 0 12px #ff4e50;
+      animation: rise 0.9s ease-out forwards; z-index:10;
     }
-    @keyframes rise { 0% { opacity:1; transform:translateY(0) scale(1); } 100% { opacity:0; transform:translateY(-70px) scale(1.8); } }
-    .stats-row { display:flex; gap:15px; width:100%; justify-content:center; }
-    .stat { background:rgba(0,0,0,0.35); backdrop-filter:blur(8px); border-radius:20px; padding:10px 16px; text-align:center; flex:1; box-shadow:0 4px 10px rgba(0,0,0,0.3); }
-    .stat-label { font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; color:#aaa; }
-    .stat-value { font-size:1.3rem; font-weight:bold; color:#ffd166; }
-    .secret-tap-hint { font-size:0.65rem; color:#888; text-align:center; margin-top:-10px; cursor:default; user-select:none; }
-    .upgrades-panel { width:100%; background:rgba(0,0,0,0.3); border-radius:30px; padding:15px; backdrop-filter:blur(10px); display:flex; flex-direction:column; gap:12px; }
+    @keyframes rise { 0% { opacity:1; transform:translateY(0) scale(1); } 100% { opacity:0; transform:translateY(-80px) scale(1.8); } }
+    .stats-row { display:flex; gap:12px; width:100%; justify-content:center; }
+    .stat { background:rgba(0,0,0,0.45); backdrop-filter:blur(8px); border-radius:18px; padding:8px 14px; text-align:center; flex:1; box-shadow:0 4px 12px rgba(0,0,0,0.4); }
+    .stat-label { font-size:0.65rem; text-transform:uppercase; letter-spacing:1.5px; color:#888; }
+    .stat-value { font-size:1.2rem; font-weight:bold; color:#f9d423; }
+    .secret-tap-hint { font-size:0.6rem; color:#666; text-align:center; margin-top:-8px; cursor:default; user-select:none; font-style:italic; }
+    .upgrades-panel { width:100%; background:rgba(0,0,0,0.4); border-radius:25px; padding:12px; backdrop-filter:blur(10px); display:flex; flex-direction:column; gap:10px; }
     .upgrade-btn {
-      background:linear-gradient(135deg, #2d2d44, #1a1a2e); border:none; border-radius:20px; padding:14px 18px; color:white;
+      background:linear-gradient(135deg, #2d2d44, #1a1a2e); border:none; border-radius:18px; padding:12px 15px; color:white;
       font-weight:bold; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:0.2s;
-      box-shadow:0 4px 12px rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.08); font-size:0.95rem;
+      box-shadow:0 4px 12px rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.05); font-size:0.9rem;
     }
     .upgrade-btn:active { transform:scale(0.96); background:#3a3a5a; }
-    .upgrade-btn.disabled { opacity:0.5; pointer-events:none; filter:grayscale(0.6); }
+    .upgrade-btn.disabled { opacity:0.4; pointer-events:none; filter:grayscale(0.7); }
     .upgrade-info { display:flex; flex-direction:column; align-items:flex-start; }
-    .upgrade-name { font-size:1rem; font-weight:600; }
-    .upgrade-desc { font-size:0.7rem; color:#b0b0d0; }
-    .upgrade-cost { background:#ffd166; color:#1a1a2e; padding:6px 14px; border-radius:30px; font-weight:bold; }
-    .boost-section { display:flex; gap:12px; width:100%; margin-top:5px; }
+    .upgrade-name { font-size:0.95rem; font-weight:600; }
+    .upgrade-desc { font-size:0.65rem; color:#b0b0d0; }
+    .upgrade-cost { background:#f9d423; color:#1a1a2e; padding:5px 12px; border-radius:25px; font-weight:bold; font-size:0.85rem; }
+    .boost-section { display:flex; gap:10px; width:100%; margin-top:5px; }
     .boost-btn {
-      flex:1; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:25px;
-      padding:12px; color:white; font-weight:bold; text-align:center; cursor:pointer; transition:0.2s; backdrop-filter:blur(5px); font-size:0.8rem;
+      flex:1; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:22px;
+      padding:10px; color:white; font-weight:bold; text-align:center; cursor:pointer; transition:0.2s; backdrop-filter:blur(5px); font-size:0.75rem;
     }
-    .boost-btn.active-boost { background:#ff4e50; border-color:#ff4e50; box-shadow:0 0 20px #ff4e50; }
-    .boost-btn.cooldown { opacity:0.5; pointer-events:none; }
-    .skin-selector { display:flex; gap:10px; width:100%; flex-wrap:wrap; justify-content:center; background:rgba(0,0,0,0.3); border-radius:20px; padding:12px; }
-    .skin-option { background:rgba(0,0,0,0.5); border-radius:25px; padding:10px 14px; cursor:pointer; border:2px solid transparent; transition:0.2s; font-weight:bold; font-size:0.9rem; backdrop-filter:blur(5px); }
-    .skin-option.selected { border-color:#f9d423; box-shadow:0 0 20px rgba(249,212,35,0.5); background:rgba(249,212,35,0.2); }
+    .boost-btn.active-boost { background:#ff4e50; border-color:#ff4e50; box-shadow:0 0 25px #ff4e50; }
+    .boost-btn.cooldown { opacity:0.4; pointer-events:none; }
+    .skin-selector { display:flex; gap:8px; width:100%; flex-wrap:wrap; justify-content:center; background:rgba(0,0,0,0.4); border-radius:18px; padding:10px; }
+    .skin-option { background:rgba(0,0,0,0.6); border-radius:22px; padding:8px 12px; cursor:pointer; border:2px solid transparent; transition:0.2s; font-weight:bold; font-size:0.8rem; backdrop-filter:blur(5px); }
+    .skin-option.selected { border-color:#f9d423; box-shadow:0 0 20px rgba(249,212,35,0.5); background:rgba(249,212,35,0.15); }
     .hidden { display:none !important; }
     button { touch-action:manipulation; }
     .menu-btn {
       width:100%; background:linear-gradient(135deg, #f9d423, #ff4e50);
-      border:none; border-radius:25px; padding:14px; color:black;
-      font-weight:bold; font-size:1.2rem; cursor:pointer; margin-top:10px;
+      border:none; border-radius:25px; padding:12px; color:black;
+      font-weight:bold; font-size:1.1rem; cursor:pointer; margin-top:8px;
+      box-shadow:0 0 25px rgba(249,212,35,0.4);
     }
-    .menu-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:15px; }
+    .menu-grid { display:grid; grid-template-columns: repeat(2,1fr); gap:8px; margin-top:12px; }
     .menu-item { 
-      background:rgba(0,0,0,0.5); border-radius:20px; padding:15px; text-align:center; cursor:pointer; 
+      background:rgba(0,0,0,0.6); border-radius:18px; padding:12px 8px; text-align:center; cursor:pointer; 
       border:2px solid transparent; font-weight:bold; backdrop-filter:blur(5px);
-      transition: 0.2s; color:white;
+      transition: 0.2s; color:white; font-size:0.85rem;
     }
     .menu-item:hover, .menu-item:active { background:#3a3a5a; border-color:#f9d423; }
 
-    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(10px); display:flex; justify-content:center; align-items:center; z-index:100; }
+    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(15px); display:flex; justify-content:center; align-items:center; z-index:100; }
     .modal-content { 
-      background:rgba(20, 20, 40, 0.95); border-radius:30px; padding:25px; 
-      max-width:420px; width:90%; max-height:85vh; overflow-y:auto; 
-      box-shadow:0 0 40px rgba(249, 212, 35, 0.3), 0 20px 40px rgba(0,0,0,0.8); 
-      color:white; border:1px solid rgba(255,255,255,0.15);
-      backdrop-filter:blur(20px);
+      background:rgba(15, 15, 30, 0.95); border-radius:28px; padding:20px; 
+      max-width:400px; width:92%; max-height:85vh; overflow-y:auto; 
+      box-shadow:0 0 50px rgba(114,9,183,0.4), 0 25px 50px rgba(0,0,0,0.9); 
+      color:white; border:1px solid rgba(157,78,221,0.2);
+      backdrop-filter:blur(25px);
     }
-    .modal-input { width:100%; padding:14px; border-radius:25px; border:none; background:rgba(0,0,0,0.5); color:white; margin:10px 0; font-size:1rem; box-shadow:inset 0 2px 5px rgba(0,0,0,0.5); }
+    .modal-input { width:100%; padding:12px; border-radius:22px; border:none; background:rgba(0,0,0,0.6); color:white; margin:8px 0; font-size:0.9rem; box-shadow:inset 0 2px 8px rgba(0,0,0,0.8); }
     .modal-btn { 
-      background:linear-gradient(135deg, #f9d423, #ff4e50); border:none; border-radius:25px; 
-      padding:12px 20px; color:black; font-weight:bold; cursor:pointer; margin:5px;
-      box-shadow:0 4px 15px rgba(249, 212, 35, 0.4); transition:0.2s;
-      font-size:0.9rem;
+      background:linear-gradient(135deg, #f9d423, #ff4e50); border:none; border-radius:22px; 
+      padding:10px 18px; color:black; font-weight:bold; cursor:pointer; margin:4px;
+      box-shadow:0 4px 15px rgba(249, 212, 35, 0.5); transition:0.2s;
+      font-size:0.85rem;
     }
     .modal-btn:active { transform:scale(0.95); }
-    .tabs { display:flex; gap:5px; margin-bottom:15px; }
+    .tabs { display:flex; gap:4px; margin-bottom:12px; flex-wrap:wrap; }
     .tab-btn { 
-      flex:1; padding:12px; background:rgba(255,255,255,0.1); border:none; 
-      color:white; border-radius:15px; font-weight:bold; cursor:pointer;
-      transition:0.2s; backdrop-filter:blur(5px);
+      flex:1; min-width:60px; padding:10px 6px; background:rgba(255,255,255,0.08); border:none; 
+      color:white; border-radius:14px; font-weight:bold; cursor:pointer;
+      transition:0.2s; backdrop-filter:blur(5px); font-size:0.75rem;
     }
-    .tab-btn.active { background:#f9d423; color:black; box-shadow:0 0 15px #f9d423; }
-    .league-badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.7rem; font-weight:bold; margin-left:8px; }
+    .tab-btn.active { background:#f9d423; color:black; box-shadow:0 0 20px #f9d423; }
+    .league-badge { display:inline-block; padding:2px 8px; border-radius:18px; font-size:0.65rem; font-weight:bold; margin-left:6px; }
     .bronze { background:#cd7f32; color:white; }
     .silver { background:#c0c0c0; color:black; }
     .gold { background:#ffd700; color:black; }
@@ -162,42 +169,48 @@
 
     .toast {
       position:fixed; top:20px; left:50%; transform:translateX(-50%);
-      background:rgba(45,45,68,0.95); color:white; padding:15px 30px; border-radius:40px;
+      background:rgba(20,20,40,0.95); color:white; padding:12px 25px; border-radius:35px;
       font-weight:bold; z-index:200; opacity:0; transition: opacity 0.3s;
-      box-shadow:0 10px 30px rgba(0,0,0,0.7); border:1px solid rgba(255,255,255,0.2);
+      box-shadow:0 10px 30px rgba(0,0,0,0.8); border:1px solid rgba(157,78,221,0.5);
+      font-size:0.9rem;
     }
     .toast.show { opacity:1; }
 
-    .pvp-container { width:100%; height:280px; background:#0f0f1a; border-radius:20px; position:relative; overflow:hidden; margin:15px 0; border:2px solid #f9d423; box-shadow:0 0 30px rgba(249,212,35,0.3); }
-    .basket { position:absolute; bottom:10px; width:80px; height:40px; background:linear-gradient(135deg, #8B4513, #A0522D); border-radius:10px 10px 20px 20px; box-shadow:0 0 20px rgba(255,215,0,0.6); left:50%; transform:translateX(-50%); }
-    .fruit { position:absolute; font-size:2rem; top:-40px; filter:drop-shadow(0 0 5px white); }
-    .score-board { display:flex; justify-content:space-around; margin:10px 0; font-size:1.3rem; font-weight:bold; }
-    .pvp-timer { text-align:center; font-size:1.8rem; margin:10px 0; color:#f9d423; text-shadow:0 0 10px #f9d423; }
+    .pvp-container { width:100%; height:250px; background:#0a0a15; border-radius:18px; position:relative; overflow:hidden; margin:12px 0; border:2px solid #f9d423; box-shadow:0 0 35px rgba(249,212,35,0.3); }
+    .basket { position:absolute; bottom:10px; width:70px; height:35px; background:linear-gradient(135deg, #8B4513, #A0522D); border-radius:8px 8px 18px 18px; box-shadow:0 0 20px rgba(255,215,0,0.7); left:50%; transform:translateX(-50%); }
+    .fruit { position:absolute; font-size:1.8rem; top:-35px; filter:drop-shadow(0 0 6px white); }
+    .score-board { display:flex; justify-content:space-around; margin:8px 0; font-size:1.1rem; font-weight:bold; }
+    .pvp-timer { text-align:center; font-size:1.6rem; margin:8px 0; color:#f9d423; text-shadow:0 0 12px #f9d423; }
 
-    .chat-messages { height:200px; overflow-y:auto; background:rgba(0,0,0,0.5); border-radius:20px; padding:15px; margin:10px 0; box-shadow:inset 0 0 10px rgba(0,0,0,0.8); }
-    .chat-msg { background:rgba(45,45,68,0.8); padding:10px 15px; border-radius:20px; margin:8px 0; max-width:80%; backdrop-filter:blur(5px); }
-    .chat-msg.my { margin-left:auto; background:rgba(249, 212, 35, 0.8); color:black; }
+    .chat-messages { height:180px; overflow-y:auto; background:rgba(0,0,0,0.6); border-radius:18px; padding:12px; margin:8px 0; box-shadow:inset 0 0 12px rgba(0,0,0,0.9); }
+    .chat-msg { background:rgba(45,45,68,0.85); padding:8px 12px; border-radius:18px; margin:6px 0; max-width:80%; backdrop-filter:blur(5px); font-size:0.85rem; }
+    .chat-msg.my { margin-left:auto; background:rgba(249, 212, 35, 0.85); color:black; }
 
-    .credit-rating { font-size:0.9rem; color:#ffd700; margin-left:5px; font-weight:bold; }
+    .credit-rating { font-size:0.85rem; color:#ffd700; margin-left:4px; font-weight:bold; }
     .deal-item { 
-      background:rgba(30, 30, 50, 0.9); padding:15px; border-radius:15px; margin:10px 0; 
-      box-shadow:0 5px 15px rgba(0,0,0,0.5); border-left:4px solid #f9d423;
-      transition:0.2s;
+      background:rgba(25, 25, 45, 0.9); padding:12px; border-radius:14px; margin:8px 0; 
+      box-shadow:0 5px 15px rgba(0,0,0,0.6); border-left:3px solid #7209b7;
+      transition:0.2s; font-size:0.85rem;
     }
-    .deal-item p { margin:5px 0; }
-    .avatar { margin-right:8px; font-size:1.3rem; }
+    .deal-item p { margin:4px 0; }
+    .avatar { margin-right:6px; font-size:1.2rem; }
     .production-timer { font-weight:bold; color:#f9d423; }
     .rarity-common { color:#aaa; }
     .rarity-rare { color:#00bfff; }
     .rarity-epic { color:#a020f0; }
     .rarity-legendary { color:#ffd700; }
 
-    .progress-custom { width:100%; height:12px; border-radius:10px; background:rgba(255,255,255,0.1); overflow:hidden; margin:5px 0; }
-    .progress-custom > div { height:100%; background:linear-gradient(90deg, #f9d423, #ff4e50); border-radius:10px; }
+    .progress-custom { width:100%; height:10px; border-radius:10px; background:rgba(255,255,255,0.1); overflow:hidden; margin:4px 0; }
+    .progress-custom > div { height:100%; background:linear-gradient(90deg, #7209b7, #f9d423); border-radius:10px; }
+    .story-text { color:#c77dff; font-style:italic; font-size:0.8rem; text-shadow:0 0 8px #7209b7; }
   </style>
 </head>
 <body>
-<div id="loadingScreen"><div class="loader"></div><div class="loading-text">Загрузка игры...</div></div>
+<div id="loadingScreen">
+  <div class="loader"></div>
+  <div class="loading-text">ПРОБУЖДЕНИЕ КРИСТАЛЛА</div>
+  <div class="loading-subtitle">...тайны древних шепчут твоё имя...</div>
+</div>
 <div id="toast" class="toast"></div>
 
 <div class="game-container" style="visibility:hidden;">
@@ -214,7 +227,7 @@
     <div class="stat" id="tapStat"><div class="stat-label">За тап</div><div class="stat-value" id="tapPower">1</div></div>
     <div class="stat" id="passiveStatContainer"><div class="stat-label">В сек</div><div class="stat-value" id="passivePower">0</div></div>
   </div>
-  <div class="secret-tap-hint">✨ нажми 10 раз на "За тап", чтобы открыть секретный скин</div>
+  <div class="secret-tap-hint" id="secretHintText">✨ нажми 10 раз на "За тап", чтобы открыть секретный скин</div>
   <div class="boost-section">
     <button class="boost-btn" id="boost2x">⚡ x2 (60с)</button>
     <button class="boost-btn" id="boostAuto">🌀 Авто-тап (60с)</button>
@@ -227,6 +240,7 @@
   </div>
   <div class="upgrades-panel" id="upgradesContainer"></div>
   <button class="menu-btn" id="openMenuBtn">📋 Меню</button>
+  <div class="story-text" id="storyHint"></div>
 </div>
 
 <!-- Меню -->
@@ -249,7 +263,7 @@
   </div>
 </div>
 
-<!-- Модальные окна -->
+<!-- Модальные окна (компактные) -->
 <div id="friendsModal" class="modal hidden">
   <div class="modal-content">
     <h3>👥 Друзья</h3>
@@ -260,12 +274,12 @@
     <div id="friendsTabContent">
       <input type="text" class="modal-input" id="friendIdInput" placeholder="Введите ID друга">
       <button class="modal-btn" id="addFriendBtn">Добавить</button>
-      <div id="friendsList" style="margin-top:15px;"></div>
+      <div id="friendsList" style="margin-top:10px;"></div>
     </div>
     <div id="requestsTabContent" class="hidden">
-      <div id="requestsList" style="margin-top:15px;"></div>
+      <div id="requestsList" style="margin-top:10px;"></div>
     </div>
-    <button class="modal-btn" id="closeFriendsBtn" style="margin-top:10px;">Закрыть</button>
+    <button class="modal-btn" id="closeFriendsBtn" style="margin-top:8px;">Закрыть</button>
   </div>
 </div>
 
@@ -304,7 +318,7 @@
 </div>
 
 <div id="pvpModal" class="modal hidden">
-  <div class="modal-content" style="max-width:500px;">
+  <div class="modal-content" style="max-width:480px;">
     <h3>⚔️ Фруктовая битва</h3>
     <div id="pvpSearching">Поиск соперника... <span id="searchTimer">0</span> сек</div>
     <div id="pvpGameArea" class="hidden">
@@ -335,7 +349,7 @@
       <input type="number" class="modal-input" id="investPercent" placeholder="Процент возврата">
       <input type="number" class="modal-input" id="investDuration" placeholder="Срок (минут)">
       <button class="modal-btn" id="createInvestBtn">Создать</button>
-      <h4 style="margin-top:15px;">Активные предложения</h4>
+      <h4 style="margin-top:12px;">Активные предложения</h4>
       <div id="investList"></div>
     </div>
     <div id="myDealsTabContent" class="hidden">
@@ -345,7 +359,7 @@
       <p>Страховка снизит потерю 🔥 при поражении на 50%.</p>
       <p>Стоимость: 2000 💎</p>
       <button class="modal-btn" id="buyInsuranceBtn">Купить страховку</button>
-      <p id="insuranceStatus" style="margin-top:10px;"></p>
+      <p id="insuranceStatus" style="margin-top:8px;"></p>
     </div>
     <button class="modal-btn" id="closeBankBtn">Закрыть</button>
   </div>
@@ -357,11 +371,9 @@
     <div class="tabs">
       <button class="tab-btn active" id="craftTabBtn">Крафт</button>
       <button class="tab-btn" id="componentsTabBtn">Производство</button>
-      <button class="tab-btn" id="factoryInventoryTabBtn">Инвентарь</button>
     </div>
     <div id="craftTabContent"><div id="recipesList"></div></div>
     <div id="componentsTabContent" class="hidden"><div id="componentsList"></div><p id="productionStatus"></p></div>
-    <div id="factoryInventoryTabContent" class="hidden"><div id="factoryInventoryItems"></div></div>
     <button class="modal-btn" id="closeFactoryBtn">Закрыть</button>
   </div>
 </div>
@@ -407,7 +419,7 @@
     <p>Уровень: <span id="passLevelDisplay">1</span>/100</p>
     <div class="progress-custom"><div id="passProgressFill" style="width:0%"></div></div>
     <p><span id="passXpDisplay">0</span> / 1000 XP</p>
-    <div id="passRewardDisplay"></div>
+    <div style="max-height:200px; overflow-y:auto; margin:10px 0;" id="passRewardsList"></div>
     <button class="modal-btn" id="closePassBtn">Закрыть</button>
   </div>
 </div>
@@ -417,7 +429,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
 <script>
-  // Конфигурация Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyDFR3PN4FizMbTnOysavtDJ4sgZIKnPnCw",
     authDomain: "crystal-tap-game.firebaseapp.com",
@@ -531,7 +542,7 @@
   const boostAutoBtn = document.getElementById('boostAuto');
   const playerIdDisplay = document.getElementById('playerIdDisplay');
   const skinOptions = document.querySelectorAll('.skin-option');
-  const secretHint = document.querySelector('.secret-tap-hint');
+  const secretHint = document.getElementById('secretHintText');
   const tapStatDiv = document.getElementById('tapStat');
   const passiveStatDiv = document.getElementById('passiveStatContainer');
   const loadingScreen = document.getElementById('loadingScreen');
@@ -550,7 +561,8 @@
   const passLevelDisplay = document.getElementById('passLevelDisplay');
   const passProgressFill = document.getElementById('passProgressFill');
   const passXpDisplay = document.getElementById('passXpDisplay');
-  const passRewardDisplay = document.getElementById('passRewardDisplay');
+  const passRewardsList = document.getElementById('passRewardsList');
+  const storyHint = document.getElementById('storyHint');
 
   function showToast(text, color = '#f9d423') {
     const toast = document.getElementById('toast');
@@ -630,6 +642,7 @@
       updateFireDisplay();
       updateEquippedPet();
       updatePassUI();
+      updateStory();
 
       db.ref('players/' + uid + '/energy').on('value', snap => { if (state.dataLoaded) { state.energy = snap.val() || 0; updateUI(); } });
       db.ref('players/' + uid + '/fire').on('value', snap => { if (state.dataLoaded) { state.fire = snap.val() || 0; updateFireDisplay(); updateUI(); } });
@@ -642,10 +655,10 @@
         }
       });
       db.ref('players/' + uid + '/inventoryComponents').on('value', snap => {
-        if (state.dataLoaded) { state.inventoryComponents = snap.val() || {}; updateFactoryInventoryUI(); }
+        if (state.dataLoaded) { state.inventoryComponents = snap.val() || {}; }
       });
       db.ref('players/' + uid + '/inventoryItems').on('value', snap => {
-        if (state.dataLoaded) { state.inventoryItems = snap.val() || []; updateFactoryInventoryUI(); }
+        if (state.dataLoaded) { state.inventoryItems = snap.val() || []; }
       });
       db.ref('players/' + uid + '/inventoryPets').on('value', snap => {
         if (state.dataLoaded) { state.inventoryPets = snap.val() || []; renderInventoryPets(); }
@@ -654,7 +667,7 @@
       db.ref('players/' + uid + '/passLevel').on('value', snap => { if (state.dataLoaded) { state.passLevel = snap.val() || 0; updatePassUI(); } });
 
       loadingScreen.style.opacity = '0';
-      setTimeout(() => loadingScreen.classList.add('hidden'), 500);
+      setTimeout(() => loadingScreen.classList.add('hidden'), 600);
       document.querySelector('.game-container').style.visibility = 'visible';
       state.dataLoaded = true;
       if (state.production.active) scheduleProductionFinish();
@@ -685,6 +698,20 @@
       passLevel: state.passLevel,
       passStartTime: state.passStartTime
     });
+  }
+
+  // Сюжетные подсказки
+  function updateStory() {
+    if (!state.secretCodeUsed) {
+      storyHint.textContent = '«Кристалл помнит... Нажми на "В сек", если осмелишься...»';
+    } else if (state.equippedPetIndex >= 0 && state.inventoryPets[state.equippedPetIndex]) {
+      const pet = getPetById(state.inventoryPets[state.equippedPetIndex].id);
+      storyHint.textContent = `«${pet.name} чувствует древнюю магию...»`;
+    } else if (state.passLevel >= 50) {
+      storyHint.textContent = '«Ты пробуждаешь силу, что спала веками...»';
+    } else {
+      storyHint.textContent = '«Где-то далеко звенят осколки реальности...»';
+    }
   }
 
   // Копирование ID
@@ -1003,12 +1030,13 @@
     state.energy += gained;
     addPassXP(1);
     updateUI(); savePlayerData();
+    updateStory();
   }
   function createParticle(e, text, color) {
     const p = document.createElement('div'); p.className='particle'; p.textContent=text; p.style.color=color;
     p.style.left = e.clientX - crystalArea.getBoundingClientRect().left - 20 + 'px';
     p.style.top = e.clientY - crystalArea.getBoundingClientRect().top - 20 + 'px';
-    crystalArea.appendChild(p); setTimeout(() => p.remove(), 800);
+    crystalArea.appendChild(p); setTimeout(() => p.remove(), 900);
   }
 
   setInterval(() => {
@@ -1080,7 +1108,7 @@
     updateFireDisplay();
   }
 
-  // Секретный код
+  // Секретный код с сюжетной отсылкой
   const SECRET = ['-','.','-','-','.'];
   let gestureStart = null;
   function setupSecretCode() {
@@ -1110,7 +1138,10 @@
       if (state.secretCodeProgress === SECRET.length) {
         state.energy += 50000; state.secretCodeUsed = true;
         savePlayerData(); updateUI(); disableSecretCode();
-        showToast('🎉 Секретный код активирован! +50 000 монет.');
+        showToast('🎉 Древний шифр принят! +50 000 монет.', '#c77dff');
+        updateStory();
+      } else if (state.secretCodeProgress === 1) {
+        showToast('...а это интересно!', '#9d4edd');
       }
     } else state.secretCodeProgress = 0;
   }
@@ -1224,14 +1255,14 @@
     if (!state.pvp.active) return;
     const fruit = document.createElement('div'); fruit.className='fruit';
     fruit.textContent = ['🍎','🍌','🍇','🍊','🍓'][Math.floor(Math.random()*5)];
-    fruit.style.left = Math.random()*90 + '%'; fruit.style.top = '-40px';
+    fruit.style.left = Math.random()*90 + '%'; fruit.style.top = '-35px';
     pvpField.appendChild(fruit);
     let fallSpeed = 2 + Math.random()*2;
     const fallInterval = setInterval(() => {
       if (!state.pvp.active) { clearInterval(fallInterval); fruit.remove(); return; }
       const top = parseFloat(fruit.style.top) + fallSpeed;
       fruit.style.top = top + 'px';
-      if (top > 280) { clearInterval(fallInterval); fruit.remove(); }
+      if (top > 250) { clearInterval(fallInterval); fruit.remove(); }
       const br = basket.getBoundingClientRect(), fr = fruit.getBoundingClientRect();
       if (fr.bottom >= br.top && fr.top <= br.bottom && fr.right >= br.left && fr.left <= br.right) {
         state.pvp.myScore++; myFruitScore.textContent = state.pvp.myScore;
@@ -1299,7 +1330,6 @@
     showToast('Страховка куплена!');
   });
 
-  // Инвестиции
   document.getElementById('createInvestBtn').addEventListener('click', () => {
     const amount = parseInt(document.getElementById('investAmount').value);
     const percent = parseFloat(document.getElementById('investPercent').value);
@@ -1418,7 +1448,7 @@
     });
   }
 
-  // Фабрика
+  // Фабрика (без инвентаря)
   document.getElementById('menuFactory').addEventListener('click', () => {
     document.getElementById('menuModal').classList.add('hidden');
     factoryModal.classList.remove('hidden');
@@ -1430,30 +1460,17 @@
   document.getElementById('craftTabBtn').addEventListener('click', () => {
     document.getElementById('craftTabContent').classList.remove('hidden');
     document.getElementById('componentsTabContent').classList.add('hidden');
-    document.getElementById('factoryInventoryTabContent').classList.add('hidden');
     document.getElementById('craftTabBtn').classList.add('active');
     document.getElementById('componentsTabBtn').classList.remove('active');
-    document.getElementById('factoryInventoryTabBtn').classList.remove('active');
     loadRecipes();
   });
   document.getElementById('componentsTabBtn').addEventListener('click', () => {
     document.getElementById('craftTabContent').classList.add('hidden');
     document.getElementById('componentsTabContent').classList.remove('hidden');
-    document.getElementById('factoryInventoryTabContent').classList.add('hidden');
     document.getElementById('componentsTabBtn').classList.add('active');
     document.getElementById('craftTabBtn').classList.remove('active');
-    document.getElementById('factoryInventoryTabBtn').classList.remove('active');
     loadComponents();
     updateProductionUI();
-  });
-  document.getElementById('factoryInventoryTabBtn').addEventListener('click', () => {
-    document.getElementById('craftTabContent').classList.add('hidden');
-    document.getElementById('componentsTabContent').classList.add('hidden');
-    document.getElementById('factoryInventoryTabContent').classList.remove('hidden');
-    document.getElementById('factoryInventoryTabBtn').classList.add('active');
-    document.getElementById('craftTabBtn').classList.remove('active');
-    document.getElementById('componentsTabBtn').classList.remove('active');
-    updateFactoryInventoryUI();
   });
 
   function loadRecipes() {
@@ -1479,7 +1496,6 @@
     Object.entries(recipe.components).forEach(([compId, qty]) => { state.inventoryComponents[compId] -= qty; });
     state.inventoryItems.push({ id: Date.now().toString(), type: recipe.result.type, effect: recipe.result.effect || null, amount: recipe.result.amount || 0, name: recipe.name });
     savePlayerData();
-    updateFactoryInventoryUI();
     loadRecipes();
     showToast(`${recipe.name} скрафчен!`);
   }
@@ -1539,52 +1555,7 @@
     state.production = { active: false, endTime: 0, componentId: null };
     savePlayerData();
     updateProductionUI();
-    updateFactoryInventoryUI();
     showToast(`Производство завершено: +1 ${components[compId]?.name}`);
-  }
-
-  function updateFactoryInventoryUI() {
-    const div = document.getElementById('factoryInventoryItems');
-    let html = '<h5>Компоненты:</h5>';
-    Object.entries(state.inventoryComponents).forEach(([id, qty]) => {
-      if (qty > 0) html += `<p>${components[id]?.name}: ${qty}</p>`;
-    });
-    html += '<h5>Готовые предметы:</h5>';
-    if (state.inventoryItems.length === 0) html += '<p>Пусто</p>';
-    else state.inventoryItems.forEach((item, i) => {
-      html += `<p>${item.name} <button class="modal-btn sell-inv-btn" data-index="${i}">Продать</button> <button class="modal-btn use-inv-btn" data-index="${i}">Использовать</button></p>`;
-    });
-    div.innerHTML = html;
-    document.querySelectorAll('.sell-inv-btn').forEach(b => b.addEventListener('click', () => {
-      const idx = parseInt(b.dataset.index);
-      const item = state.inventoryItems[idx];
-      if (!item) return;
-      const price = prompt('Цена продажи (💎):');
-      if (!price || isNaN(price) || price <= 0) return;
-      db.ref('market/listings').push({
-        seller: state.userId,
-        item: item,
-        price: parseInt(price),
-        type: 'fixed',
-        status: 'active',
-        createdAt: Date.now()
-      });
-      state.inventoryItems.splice(idx, 1);
-      savePlayerData();
-      updateFactoryInventoryUI();
-      showToast('Предмет выставлен на рынок');
-    }));
-    document.querySelectorAll('.use-inv-btn').forEach(b => b.addEventListener('click', () => {
-      const idx = parseInt(b.dataset.index);
-      const item = state.inventoryItems[idx];
-      if (!item) return;
-      if (item.type === 'boost') activateBoost(item.effect);
-      else if (item.type === 'fire') { state.fire += item.amount; showToast(`+${item.amount}🔥`); }
-      state.inventoryItems.splice(idx, 1);
-      savePlayerData();
-      updateUI();
-      updateFactoryInventoryUI();
-    }));
   }
 
   // Рынок
@@ -1691,7 +1662,6 @@
     }).then(() => {
       state.inventoryItems.splice(index, 1);
       savePlayerData();
-      updateFactoryInventoryUI();
       updateSellSelect();
       document.getElementById('sellPrice').value = '';
       showToast('Лот выставлен');
@@ -1717,7 +1687,6 @@
           db.ref('market/listings/' + listingId).update({ status: 'cancelled' });
           state.inventoryItems.push(data[listingId].item);
           savePlayerData();
-          updateFactoryInventoryUI();
           loadMyListings();
           showToast('Лот отменён');
         }
@@ -1827,6 +1796,7 @@
       savePlayerData();
       updateEquippedPet();
       renderInventoryPets();
+      updateStory();
     }));
     document.querySelectorAll('.sell-pet-btn').forEach(b => b.addEventListener('click', () => {
       const idx = parseInt(b.dataset.index);
@@ -1860,7 +1830,7 @@
     div.innerHTML = html || '<p>Нет ресурсов</p>';
   }
 
-  // Crystal Pass
+  // Crystal Pass с прокруткой наград
   function addPassXP(amount) {
     if (Date.now() - state.passStartTime > PASS_DURATION_DAYS * 24 * 60 * 60 * 1000) {
       state.passLevel = 0;
@@ -1895,15 +1865,25 @@
     const progressPercent = Math.min(100, (state.passXP / PASS_XP_PER_LEVEL) * 100);
     passProgressFill.style.width = progressPercent + '%';
     passXpDisplay.textContent = `${state.passXP} / ${PASS_XP_PER_LEVEL} XP`;
-    const nextReward = getPassReward(state.passLevel);
-    let rewardText = 'Следующая награда: ';
-    if (nextReward.type === '💎') rewardText += `${nextReward.amount} 💎`;
-    else if (nextReward.type === '🔥') rewardText += `${nextReward.amount} 🔥`;
-    else if (nextReward.type === 'pet') {
-      const pet = getPetById(nextReward.petId);
-      rewardText += `Питомец ${pet.name} (${pet.rarity})`;
+    // Отображаем все награды
+    let rewardsHtml = '';
+    for (let i = 0; i <= PASS_MAX_LEVEL; i++) {
+      const reward = getPassReward(i);
+      let rewardText = '';
+      if (reward.type === '💎') rewardText = `${reward.amount} 💎`;
+      else if (reward.type === '🔥') rewardText = `${reward.amount} 🔥`;
+      else if (reward.type === 'pet') {
+        const pet = getPetById(reward.petId);
+        rewardText = `Питомец ${pet.name} (${pet.rarity})`;
+      }
+      const unlocked = i <= state.passLevel;
+      rewardsHtml += `<div style="display:flex; justify-content:space-between; align-items:center; padding:4px 8px; background:${unlocked?'rgba(249,212,35,0.2)':'transparent'}; border-radius:10px; margin:2px 0;">
+        <span style="color:${unlocked?'#f9d423':'#666'}">Ур. ${i+1}</span>
+        <span style="color:${unlocked?'white':'#555'}">${rewardText}</span>
+        ${unlocked ? '<span>✅</span>' : '<span>🔒</span>'}
+      </div>`;
     }
-    passRewardDisplay.textContent = rewardText;
+    passRewardsList.innerHTML = rewardsHtml;
   }
 
   document.getElementById('menuPass').addEventListener('click', () => {
